@@ -7,17 +7,19 @@
    版本号改了会自动清掉旧缓存，不会出现「改了代码页面还是旧的」。
    =========================================================== */
 
-var CACHE = 'zzdt-v1.23.2';
+var CACHE = 'zzdt-v1.24.0';
 
 /* 要预缓存的静态资源。products.js 有 160KB，产品库必须离线能用。 */
 var ASSETS = [
   './',
   './index.html',
+  './mobile.html',
   './manifest.json',
   './css/style.css',
   './js/data.js',
   './js/products.js',
   './js/app.js',
+  './js/mobile.js',
   './js/plan.js',
   './js/panels.js',
   './js/quote-switch.js',

@@ -2,7 +2,7 @@
   "name": "智装点位通 · 智能方案与报价",
   "short_name": "智装点位通",
   "description": "户型 → 点位 → 报价，一条龙。全屋智能设计师的现场报价工具。",
-  "start_url": "./index.html",
+  "start_url": "./mobile.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
@@ -49,16 +49,16 @@
   ],
   "shortcuts": [
     {
-      "name": "开关报价",
-      "short_name": "开关报价",
-      "description": "第 7 页：Z1 / X30 开关快速报价",
-      "url": "./index.html?tab=p7"
+      "name": "极速报价",
+      "short_name": "极速报价",
+      "description": "手机精简版：空间开关数一键快报",
+      "url": "./mobile.html"
     },
     {
-      "name": "户型与图纸",
-      "short_name": "户型",
-      "description": "第 1 页：户型模板与房间清单",
-      "url": "./index.html?tab=p1"
+      "name": "完整版",
+      "short_name": "完整版",
+      "description": "灯带/灯具/点位图/打印报价单",
+      "url": "./index.html"
     }
   ]
 }
