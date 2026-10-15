@@ -677,12 +677,12 @@
     var install = parseFloat($('installFee').value) || 0;
     var extra = parseFloat($('extraFee').value) || 0;
     var html = '';
-    html += '<div class="sum-box" style="background:#EAF7F4;border-color:#bfe6df"><div class="k">已选设备合计</div><div class="v" style="color:#0A6B5E">¥' + fmt0(s.total) + '</div>' +
+    html += '<div class="sum-box" style="background:#FFF1E6;border-color:#ffd9b8"><div class="k">已选设备合计</div><div class="v" style="color:#C2410C">¥' + fmt0(s.total) + '</div>' +
       '<div class="n">' + s.rows + ' 类 · ' + s.cnt + ' 件（候选 ' + S.points.length + ' 个）</div></div>';
     html += '<div class="sum-box"><div class="k">安装调试 + 其他</div><div class="v">¥' + fmt0(install + extra) + '</div>' +
       '<div class="n">安装 ¥' + fmt0(install) + ' / 其他 ¥' + fmt0(extra) + '</div></div>';
-    html += '<div class="sum-box" style="background:#EAF7F4;border-color:#bfe6df"><div class="k">客户总价（设备+安装+其他）</div>' +
-      '<div class="v" style="color:#0A6B5E">¥' + fmt0(s.total + install + extra) + '</div>' +
+    html += '<div class="sum-box" style="background:#FFF1E6;border-color:#ffd9b8"><div class="k">客户总价（设备+安装+其他）</div>' +
+      '<div class="v" style="color:#C2410C">¥' + fmt0(s.total + install + extra) + '</div>' +
       '<div class="n">均价约 ¥' + fmt0((s.total + install + extra) / Math.max(1, S.rooms.length || 1)) + ' / 空间</div></div>';
 
     /* 分区域小计 */
@@ -746,7 +746,7 @@
       '<tr><td style="width:70%">设备材料合计</td><td class="right">¥' + fmt(s.total) + '</td></tr>' +
       '<tr><td>安装调试费（含上门、布线指导、场景配置、交付培训）</td><td class="right">¥' + fmt(install) + '</td></tr>' +
       '<tr><td>其他费用</td><td class="right">¥' + fmt(extra) + '</td></tr>' +
-      '<tr class="total"><td>合　计</td><td class="right" style="color:#0A6B5E">¥' + fmt(grand) + '</td></tr>' +
+      '<tr class="total"><td>合　计</td><td class="right" style="color:#C2410C">¥' + fmt(grand) + '</td></tr>' +
       '</tbody></table>';
 
     var wireTxt = { zero: '客户家已确认有零火线', single: '老房单火线，全部走凌动/免改线方案', unknown: '线路情况待现场确认' }[S.wire] || '';
@@ -3433,7 +3433,7 @@
         var bk = s.byKey[mid] && s.byKey[mid][kd.k];
         html += '<td class="ctr">' + (bk ? bk.qty + ' 面' : '—') + '</td>';
       });
-      html += '<td class="right" style="color:#0A6B5E;font-weight:700">¥' + fmt0(s.money) + '</td>' +
+      html += '<td class="right" style="color:#C2410C;font-weight:700">¥' + fmt0(s.money) + '</td>' +
         (hasCustom ? '<td></td>' : '') + '</tr>';
 
       html += '</tbody></table></div></div>';
@@ -3548,7 +3548,7 @@
 
       html += '<div class="sum-box" style="border-color:var(--orange);background:var(--orange-soft)">' +
         '<div class="k">本页合计</div>' +
-        '<div class="v" style="color:#0A6B5E">¥' + fmt0(c.grandTotal) + '</div>' +
+        '<div class="v" style="color:#C2410C">¥' + fmt0(c.grandTotal) + '</div>' +
         '<div class="n">共 ' + (c.z.qty + c.x.qty) + ' 面开关' +
         (SW.includeInstall !== false ? '，含安装调试费' : '，不含安装调试费') + '</div></div>';
     }
@@ -3827,7 +3827,7 @@
     cv.style.width = img.clientWidth + 'px'; cv.style.height = img.clientHeight + 'px';
     var ctx = cv.getContext('2d');
     function clear() { ctx.clearRect(0, 0, cv.width, cv.height); }
-    ctx.lineWidth = 2; ctx.strokeStyle = '#00B5A5'; ctx.fillStyle = 'rgba(0,181,165,.12)';
+    ctx.lineWidth = 2; ctx.strokeStyle = '#FF7A1A'; ctx.fillStyle = 'rgba(255,122,26,.12)';
     clear();
 
     var drawing = false, sx = 0, sy = 0;
