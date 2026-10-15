@@ -1,0 +1,64 @@
+{
+  "name": "智装点位通 · 智能方案与报价",
+  "short_name": "智装点位通",
+  "description": "户型 → 点位 → 报价，一条龙。全屋智能设计师的现场报价工具。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F1F5F4",
+  "theme_color": "#0B3B37",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "icons/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "开关报价",
+      "short_name": "开关报价",
+      "description": "第 7 页：Z1 / X30 开关快速报价",
+      "url": "./index.html?tab=p7"
+    },
+    {
+      "name": "户型与图纸",
+      "short_name": "户型",
+      "description": "第 1 页：户型模板与房间清单",
+      "url": "./index.html?tab=p1"
+    }
+  ]
+}

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>智装点位通 · 智能方案与报价生成器</title>
+
+<!-- ===== PWA：让手机能「装」到桌面 ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B3B37">
+<meta name="description" content="户型 → 点位 → 报价，一条龙。全屋智能设计师的现场报价工具。">
+<!-- iOS 装到主屏后全屏跑，没有 Safari 地址栏 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="智装点位通">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">智</div>
+    <div>
+      <h1>智装点位通</h1>
+      <span>户型 → 点位 → 报价，一条龙</span>
+    </div>
+  </div>
+  <input type="text" class="input-name" id="projectName" placeholder="方案名称：如 长治·XX小区 三室两厅">
+  <div class="grow"></div>
+  <button class="btn ghost-light" id="btnSave">💾 保存方案</button>
+  <button class="btn ghost-light" id="btnLoad">📂 读取</button>
+  <button class="btn ghost-light" id="btnExportFile">📤 导出文件</button>
+  <button class="btn ghost-light" id="btnImportFile">📥 导入文件</button>
+  <input type="file" id="filePlanJson" accept=".json,application/json" class="hide">
+  <button class="btn ghost-light" id="btnXlsx">📊 导出 Excel</button>
+  <button class="btn ghost-light" id="btnPrint">🖨️ 打印 / 存 PDF</button>
+  <button class="btn ghost-light" id="pwaInstallBtn" style="display:none">📲 装到手机</button>
+</div>
+<div class="tip" id="pwaTip" style="display:none;margin:0 24px 0">
+  <b>装到手机桌面：</b>Safari 点底部「分享 <b>􀈂</b>」→「添加到主屏幕」；
+  安卓 Chrome 点右上角「⋮」→「添加到主屏幕」。装完断网也能开。
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="p1"><span class="num">1</span>户型与图纸</button>
+  <button class="tab" data-tab="p2"><span class="num">2</span>需求与档次</button>
+  <button class="tab" data-tab="p3"><span class="num">3</span>点位与报价</button>
+  <button class="tab" data-tab="p4"><span class="num">4</span>报价单</button>
+  <button class="tab" data-tab="p5"><span class="num">5</span>产品库</button>
+  <button class="tab" data-tab="p6"><span class="num">6</span>花钱顺序</button>
+  <button class="tab" data-tab="p7"><span class="num">7</span>开关/窗帘</button>
+  <button class="tab" data-tab="p8"><span class="num">8</span>灯具</button>
+</div>
+
+<main>
+  <!-- ============ 1 户型 ============ -->
+  <section class="panel active" id="p1">
+    <div class="card">
+      <h3><span class="bar"></span>选一个户型模板</h3>
+      <div class="sub">点一下直接带入房间清单，改面积、改名称、删房间都行。这套工具按房间算点位，越准越好。</div>
+      <div class="plans" id="planList"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>房间清单</h3>
+      <div class="sub">直接写空间名（如「主卧」），类型自动识别。开关、传感器按数量填；<b>周长用来在第 7 页自动估算灯带米数</b>；窗帘选单轨还是双轨。</div>
+      <div style="margin-bottom:10px" class="row">
+        <button class="btn sm" id="btnAddRoom">＋ 加房间</button>
+        <span class="code" style="font-size:12.5px;color:var(--muted)">电路条件：</span>
+        <select id="wireType">
+          <option value="unknown">不清楚（默认按单火线/凌动走）</option>
+          <option value="zero">有零火线（可做零火面板、调光）</option>
+          <option value="single">单火线老房（优先凌动 / 免改线）</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table class="rooms">
+          <thead>
+            <tr><th style="width:36px">#</th><th style="width:220px">空间</th>
+                <th style="width:100px">开关</th><th style="width:100px">传感器</th>
+                <th style="width:96px">周长(米)</th><th style="width:140px">窗帘</th><th style="width:56px"></th></tr>
+          </thead>
+          <tbody id="roomRows"></tbody>
+        </table>
+      </div>
+      <div class="img-preview" id="imgPreview"></div>
+      <div class="row" style="margin-top:12px">
+        <label class="btn sm" style="margin:0">📐 上传户型图<input type="file" id="filePlan" accept="image/*" class="hide" multiple></label>
+        <label class="btn sm" style="margin:0">🖼️ 上传效果图<input type="file" id="fileRender" accept="image/*" class="hide" multiple></label>
+        <button class="btn sm" id="btnDraw">✏️ 图上标房间</button>
+        <button class="btn sm" id="btnDrawDone" style="display:none">✓ 完成标注</button>
+        <button class="btn sm primary" id="btnAiRoom">🤖 AI 识别房间</button>
+        <span style="font-size:12px;color:var(--muted)">图纸存在本机浏览器里，不上传任何服务器。</span>
+      </div>
+      <div class="tip" id="aiTip" style="display:none"></div>
+      <div class="tip" id="drawTip" style="display:none">在图上<b>按住左键拖出一个框</b>标一个房间，松开后填房间名和面积；标完点「完成标注」。框只是定位用，房间数据照样能改。</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>平面图设备标注</h3>
+      <div class="sub">上传户型图后，选设备类型→点「图上标设备」→在图上点一下就放一个标记。开关、传感器、窗帘电机、门锁…都能标，可拖动、改名、指定房间、删除。标注跟着方案走，发给客户时在图上一目了然。</div>
+      <div class="dev-chips" id="devChips"></div>
+      <div class="row no-print" style="margin-top:10px">
+        <button class="btn sm" id="btnDevMode">📍 图上标设备</button>
+        <button class="btn sm" id="btnDevClear">🗑 清空标注</button>
+        <button class="btn sm" id="btnDevImg">🖼 导出标注图</button>
+        <button class="btn sm" id="btnDevList">📋 导出清单</button>
+        <span id="devCount" class="code" style="font-size:12.5px;color:var(--muted)"></span>
+      </div>
+      <div class="tip" id="devTip" style="display:none">已开启标注模式：点图上任意位置放「<b id="devTypeName">智能开关</b>」。点已有标记可改备注 / 房间 / 类型或删除。</div>
+      <div class="mk-list" id="markerList"></div>
+    </div>
+  </section>
+
+  <!-- ============ 2 需求 ============ -->
+  <section class="panel" id="p2">
+    <div class="card">
+      <h3><span class="bar"></span>一键预设（之后可逐条勾选）</h3>
+      <div class="sub">先按档位批量勾上点位，再到第 3 步逐条勾掉不要的。每个点位的「纳入」框由你最终决定，不再被档次锁死。</div>
+      <div class="tiers" id="tierPick">
+        <button class="tier" data-tier="1"><b>① 入门刚需</b><em>只勾基础项：门锁 / 主灯 / 主窗帘 / 中枢</em></button>
+        <button class="tier on" data-tier="2"><b>② 标准舒适</b><em>基础 + 全屋面板、毫米波、起夜灯、烟感、环境</em></button>
+        <button class="tier" data-tier="3"><b>③ 进阶享受</b><em>标准 + 摄像头、氛围灯带、适老、背景音乐</em></button>
+        <button class="tier" data-tier="0"><b>🎛 全部勾上</b><em>一键全选，自己再删</em></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>逐房间需求</h3>
+      <div class="sub">按客户口头描述勾。勾什么出什么点位，不勾不出。</div>
+      <div id="needGroups"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>客户特殊要求</h3>
+      <div class="sub">有老人小孩、养宠、常出差这些，写清楚，生成方案时我会自动带上对应点位。</div>
+      <textarea id="customerNote" class="w100" rows="3" placeholder="例：家里有 78 岁老妈，夜里起夜频繁；两只猫；老板常出差，全屋要安防…" style="border:1px solid var(--line);border-radius:8px;padding:9px;font-family:inherit;font-size:13.5px"></textarea>
+    </div>
+  </section>
+
+  <!-- ============ 3 点位与报价 ============ -->
+  <section class="panel" id="p3">
+    <div class="card">
+      <h3><span class="bar"></span>点位清单（可改）</h3>
+      <div class="sub">按你的户型和需求自动排出来的点位。数量、单价、型号都能改，改完合计实时更新。</div>
+      <div class="row" style="margin-bottom:12px">
+        <button class="btn sm" id="btnReGen">🔄 按当前需求重新生成</button>
+        <button class="btn sm" id="btnAddPoint">＋ 手动加点位</button>
+        <button class="btn sm" id="btnClearPts">🗑 清空点位</button>
+        <span class="no-print" style="font-size:12px;color:var(--muted)">提示：删掉的点位不会重新生成，除非你点「重新生成」。</span>
+      </div>
+      <div id="pointTable"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>点位分布图</h3>
+      <div class="sub">自动画的示意图，打印出来给客户指位置用。开关落在门口、插座沿墙、灯具居中、窗帘贴窗，位置按安装习惯排的。需要微调时，直接用鼠标拖动绿点即可，松手自动记住。</div>
+      <div class="row no-print" style="margin-bottom:12px">
+        <button class="btn primary" id="btnPlan">🗺 生成 / 刷新示意图</button>
+        <button class="btn" id="btnPlanSave">💾 存 SVG 文件</button>
+        <button class="btn" id="btnPlanReset">↺ 复位点位</button>
+        <span style="font-size:12px;color:var(--muted)">绿点可拖动微调 · Ctrl+P 存 PDF。</span>
+      </div>
+      <div id="planBox"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>智能面板 UI 草图</h3>
+      <div class="sub">把墙装智能开关画成客户看得懂的面板草图：按键数来自点位（单/双/三/四键），每个键标「控什么」（主灯/筒灯/观影…），标签自动从房间灯光点位生成，点一下就能改。给客户汇报用，Ctrl+P 可存 PDF。</div>
+      <div class="row no-print" style="margin-bottom:12px">
+        <button class="btn primary" id="btnPanel">🎛 生成 / 刷新面板草图</button>
+        <button class="btn" id="btnPanelSave">💾 存 SVG 文件</button>
+        <span style="font-size:12px;color:var(--muted)">点按键上的文字可直接改功能名 · Ctrl+P 存 PDF。</span>
+      </div>
+      <div id="panelBox"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>费用汇总</h3>
+      <div class="sum-grid" id="sumBox"></div>
+      <div class="row" style="margin-top:12px">
+        <div class="field"><label>安装调试费（元）</label><input type="number" id="installFee" value="0" class="w180" style="border:1px solid var(--line);border-radius:8px;padding:8px"></div>
+        <div class="field"><label>其他费用（元，如辅材/轨道加长）</label><input type="number" id="extraFee" value="0" class="w240" style="border:1px solid var(--line);border-radius:8px;padding:8px"></div>
+        <div class="field"><label>下单日期</label><input type="text" id="quoteDate" class="w180" style="border:1px solid var(--line);border-radius:8px;padding:8px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4 报价单 ============ -->
+  <section class="panel" id="p4">
+    <div class="card">
+      <h3><span class="bar"></span>报价单预览</h3>
+      <div class="sub">直接给客户看这张单子。Ctrl+P 存 PDF，或点右上角「打印 / 存 PDF」。</div>
+      <div class="row no-print" style="margin-bottom:12px">
+        <button class="btn primary" id="btnPrint2">🖨️ 打印 / 保存为 PDF</button>
+        <button class="btn" id="btnXlsx2">📊 导出 Excel（设备清单+合计）</button>
+      </div>
+      <div class="invoice" id="invoice"></div>
+    </div>
+  </section>
+
+  <!-- ============ 5 产品库 ============ -->
+  <section class="panel" id="p5">
+    <div class="card">
+      <h3><span class="bar"></span>产品库</h3>
+      <div class="sub">数据库已内置你的真实供货价（从「方案模板2026.9.19.xlsx」提取，点位的默认产品与价格都来自这里）。价格改过会记住。</div>
+      <div class="sum-grid" id="libStat"></div>
+      <div id="libMiss" style="margin-top:10px;font-size:12.5px;line-height:1.7"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>搜索产品</h3>
+      <div class="sub">按类型、型号、作用关键词搜，用于手动换产品 / 查价。</div>
+      <div class="row" style="margin-bottom:10px">
+        <input type="text" id="libSearch" placeholder="输入关键词，如 窗帘 / 零火 / D100" class="w300" style="border:1px solid var(--line);border-radius:8px;padding:8px">
+        <select id="libSrc" style="border:1px solid var(--line);border-radius:8px;padding:8px"><option value="">全部来源</option></select>
+        <span id="libCount" style="font-size:12.5px;color:var(--muted)"></span>
+      </div>
+      <div class="tbl-wrap" style="max-height:420px;overflow:auto"><table class="pts" id="libTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>导入 / 更新产品价</h3>
+      <div class="sub">在 Excel 里改好价格，整块选中（含表头）复制，粘贴到下面这个框，点「导入」。系统会按「来源 + 类型 + 型号」匹配更新价格，新增的自动追加。</div>
+      <textarea id="libPaste" rows="6" placeholder="直接从 Excel 复制粘贴，支持 Tab 或逗号分隔&#10;例如：&#10;设备类型	设备型号	作用	单价&#10;智能开关	D1零火三键	兼容米家	205"></textarea>
+      <div class="row" style="margin-top:10px">
+        <select id="libPasteSrc" style="border:1px solid var(--line);border-radius:8px;padding:8px">
+          <option value="Aqara绿米">Aqara绿米</option>
+          <option value="Yeelight">Yeelight</option>
+          <option value="Yeelight驭光">Yeelight驭光</option>
+          <option value="网络覆盖">网络覆盖</option>
+          <option value="背景音乐">背景音乐</option>
+          <option value="家庭影院">家庭影院</option>
+          <option value="楼宇对讲">楼宇对讲</option>
+          <option value="电动升降帘">电动升降帘</option>
+          <option value="线性灯型材">线性灯型材</option>
+        </select>
+        <button class="btn primary" id="btnImportLib">⤓ 导入产品价</button>
+        <button class="btn danger" id="btnResetLib">恢复内置产品价</button>
+        <span id="libMsg" style="font-size:12.5px;color:var(--muted)"></span>
+      </div>
+    </div>
+  </section>
+<!-- ============ 6 花钱顺序 ============ -->
+  <section class="panel" id="p6">
+    <div class="card">
+      <h3><span class="bar"></span>智能化的花钱顺序</h3>
+      <div class="sub">这套顺序不按预算定，按「错了能不能补救」定。前面做错了，后面花再多钱也白搭；后面没做，随时能补。</div>
+      <div class="notice">
+        <b>为什么先讲顺序不讲钱数？</b>因为顺序对了，任何预算都能做出一个能用的家；顺序错了，给多少钱都会被坑。给客户看这一页，比甩一张报价单更有说服力。
+      </div>
+      <div id="spendOrder"></div>
+    </div>
+
+    <div class="card no-print">
+      <h3><span class="bar"></span>导出</h3>
+      <div class="sub">花钱顺序可以直接打印给客户，或者导出 Excel 夹在报价单里当「施工顺序说明」。</div>
+      <div class="row">
+        <button class="btn primary" id="btnSpendPrint">🖨️ 打印花钱顺序</button>
+        <button class="btn" id="btnSpendXlsx">📊 导出 Excel</button>
+      </div>
+    </div>
+  </section>
+<!-- ============ 7 主销开关报价 ============ -->
+  <section class="panel" id="p7">
+    <div class="card">
+      <h3><span class="bar"></span>主销开关快速报价</h3>
+      <div class="sub">绿米卡农 Z1 和米家 X30 是走量最勤的两款。拿着户型图按空间数按键，填完数字立刻出总价，不用过通用点位清单那一套。</div>
+      <div class="notice">
+        <b>怎么用：</b>在下面每个空间里，填「单键 / 双键 / 三键 / 四键」各装几面。
+        填完自动算小计和总价。两个型号<b>可以只填一个，也可以两个都填做对比</b>。
+        <br>表头单价是供货价。网关、传感器、中控屏另填；安装调试服务费 = 设备费 × 30%，本页自动算。
+      </div>
+      <div class="row" style="margin-bottom:14px;align-items:center">
+        <div class="field"><label>方案名称</label>
+          <input type="text" id="swProjName" placeholder="如 长治·XX小区 三室两厅" style="width:260px"></div>
+        <div class="field"><label>报价日期</label>
+          <input type="text" id="swDate" style="width:140px"></div>
+        <button class="btn sm" id="swFillZ1">↺ 同步项目名到报价单</button>
+        <button class="btn sm" id="swClearOneKey">⚡ 一键清除全部</button>
+        <button class="btn sm" id="swClear">🗑 清空数量</button>
+      </div>
+      <div id="swStats" class="sum-grid" style="margin-bottom:4px"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>从房间清单带入开关数量</h3>
+      <div class="sub">
+        第 1 步每个空间填的「开关 = N」，可以一键摊到下面的报价表里，不用再数一遍。
+        选一种分配策略，点「带入」即可。
+      </div>
+      <div class="notice" id="swSrcInfo" style="margin-bottom:12px">
+        还没填房间清单。去第 1 步「户型与图纸」的房间表里填「开关」列，再回来点带入。
+      </div>
+      <div class="row" style="margin-bottom:12px;align-items:flex-end">
+        <div class="field"><label>分配策略</label>
+          <select id="swStrategy" style="width:240px">
+            <option value="smart">按经验分（推荐）</option>
+            <option value="mix2">标准型 40/35/20/5</option>
+            <option value="mix1">均衡型 60/30/10/0（简装）</option>
+            <option value="mix3">豪华型 25/35/25/15</option>
+          </select>
+        </div>
+        <div class="field"><label>带入到</label>
+          <select id="swTarget" class="w180">
+            <option value="z1">绿米 Z1</option>
+            <option value="x30">米家 X30</option>
+            <option value="both">两个型号都带入（做对比）</option>
+          </select>
+        </div>
+        <button class="btn primary" id="swPull">↓ 从房间清单带入</button>
+        <button class="btn" id="swPullPreview" style="margin-left:6px">👁 先看怎么分</button>
+      </div>
+      <div id="swPullPlan" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>按空间填按键数量</h3>
+      <div class="sub">只填数字就行，留空或填 0 就是这个空间不装。填错直接改，合计实时更新。<b>房间清单带入只是打草稿，以这里改过的数为准。</b></div>
+      <div class="row no-print" style="margin-bottom:12px;align-items:center;gap:8px">
+        <input type="text" id="swNewRoom" placeholder="输入新空间名，如 影音室 / 茶室 / 地下室" style="flex:1;min-width:200px;max-width:320px;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-family:inherit;font-size:13.5px">
+        <button class="btn primary" id="swAddRoom">＋ 增加空间</button>
+        <span style="font-size:12px;color:var(--muted)" id="swRoomTip">空间不够用时加在这儿，加完两个型号表格同步出现</span>
+      </div>
+      <div id="swTables"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>网关 · 传感器 · 中控屏</h3>
+      <div class="sub">数量 × 单价自动出小计，不填就是 0。价格按常用主销款默认，可现场改。</div>
+      <div class="tbl-wrap">
+        <table class="sw-tbl">
+          <thead><tr><th>设备</th><th class="right">数量</th><th class="right">单价</th><th class="right">小计</th></tr></thead>
+          <tbody>
+            <tr><td>🌐 智能网关 M3</td><td class="ctr"><input type="number" min="0" step="1" id="swHubM3Qty" value="0" style="width:70px;text-align:center"></td><td class="ctr"><input type="number" min="0" step="1" id="swHubM3Price" value="699" style="width:90px;text-align:right"></td><td class="right" id="swHubM3Sub">—</td></tr>
+            <tr><td>🔶 米家中枢网关</td><td class="ctr"><input type="number" min="0" step="1" id="swHubMJQty" value="0" style="width:70px;text-align:center"></td><td class="ctr"><input type="number" min="0" step="1" id="swHubMJPrice" value="349" style="width:90px;text-align:right"></td><td class="right" id="swHubMJSub">—</td></tr>
+            <tr><td>🌐 智能网关 M200</td><td class="ctr"><input type="number" min="0" step="1" id="swHubM200Qty" value="0" style="width:70px;text-align:center"></td><td class="ctr"><input type="number" min="0" step="1" id="swHubM200Price" value="599" style="width:90px;text-align:right"></td><td class="right" id="swHubM200Sub">—</td></tr>
+            <tr><td>🚶 人体传感器</td><td class="ctr"><input type="number" min="0" step="1" id="swMotionQty" value="0" style="width:70px;text-align:center"></td><td class="ctr"><input type="number" min="0" step="1" id="swMotionPrice" value="89" style="width:90px;text-align:right"></td><td class="right" id="swMotionSub">—</td></tr>
+            <tr><td>🚪 门窗传感器</td><td class="ctr"><input type="number" min="0" step="1" id="swDoorQty" value="0" style="width:70px;text-align:center"></td><td class="ctr"><input type="number" min="0" step="1" id="swDoorPrice" value="49" style="width:90px;text-align:right"></td><td class="right" id="swDoorSub">—</td></tr>
+            <tr><td>💧 水浸传感器</td><td class="ctr"><input type="number" min="0" step="1" id="swWaterQty" value="0" style="width:70px;text-align:center"></td><td class="ctr"><input type="number" min="0" step="1" id="swWaterPrice" value="109" style="width:90px;text-align:right"></td><td class="right" id="swWaterSub">—</td></tr>
+            <tr><td>📱 SI 集悦中控屏</td><td class="ctr"><input type="number" min="0" step="1" id="swSiPanelQty" value="0" style="width:70px;text-align:center"></td><td class="ctr"><input type="number" min="0" step="1" id="swSiPanelPrice" value="1299" style="width:90px;text-align:right"></td><td class="right" id="swSiPanelSub">—</td></tr>
+            <tr><td>🔊 小爱音箱 Pro</td><td class="ctr"><input type="number" min="0" step="1" id="swSpeakerQty" value="0" style="width:70px;text-align:center"></td><td class="ctr"><input type="number" min="0" step="1" id="swSpeakerPrice" value="369" style="width:90px;text-align:right"></td><td class="right" id="swSpeakerSub">—</td></tr>
+          </tbody>
+          <tfoot>
+            <tr class="room-sep"><td>网关/传感器/中控屏合计</td><td colspan="2"></td><td class="right" id="swExtrasTotal">—</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="notice" style="margin-top:10px">
+        <b>安装调试服务费：</b>按「开关设备合计 + 网关/传感器/中控屏合计 + 窗帘电机合计」的 <b>30%</b> 自动计算。
+        <label class="chk" style="margin-left:12px"><input type="checkbox" id="swIncludeInstall" checked> 计入本页合计</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>电动窗帘（电机 + 轨道）</h3>
+      <div class="sub">
+        <b>报价表口径：电机和轨道是一体的，按轨道宽度分档报价</b>，单价取自产品库报价表。
+        先选系列、再选宽度，价格自动对上；数量 × 单价自动出小计，不填就是 0。
+      </div>
+      <div class="notice" style="margin-bottom:12px">
+        <b>怎么选宽度：</b>量窗洞实际宽度，取<b>不小于窗宽的最小档</b>。比如窗宽 3.6 米就选 4 米档。
+        双轨/对开用「智能罗马杆」，单轨用「智能窗帘」。
+      </div>
+
+      <div class="card" style="background:var(--green-soft);border-color:#bfe6df;margin-bottom:14px">
+        <h4 style="font-size:14px;display:flex;align-items:center;gap:7px;margin-bottom:6px">
+          <span class="bar" style="width:4px;height:15px;background:var(--green);border-radius:2px"></span>
+          按房间清单带入窗帘数量
+        </h4>
+        <div class="sub" style="margin-bottom:10px">
+          第 1 步每个空间填了「窗位」和「单轨/双轨」，这里点一下自动算出每个空间要几套：
+          <b>单轨 × 窗位数 = 套数，双轨 × 窗位数 × 2</b>。双轨自动归到「智能罗马杆」。
+        </div>
+        <div class="row" style="align-items:flex-end">
+          <div class="field"><label>单轨用什么</label>
+            <select id="swCurtainPullSingle" class="w240">
+              <option value="E1|4">E1 智能窗帘 4 米（¥899）</option>
+              <option value="E1|5">E1 智能窗帘 5 米（¥999）</option>
+              <option value="C200|4">C200 智能窗帘 4 米（¥1,149）</option>
+            </select>
+          </div>
+          <div class="field"><label>双轨用什么</label>
+            <select id="swCurtainPullDual" class="w240">
+              <option value="C200|5">C200 智能窗帘 5 米（¥1,249）</option>
+              <option value="C200|4">C200 智能窗帘 4 米（¥1,149）</option>
+              <option value="E1|5">E1 智能窗帘 5 米（¥999）</option>
+            </select>
+          </div>
+          <button class="btn primary" id="swCurtainPull">↓ 从房间清单带入</button>
+          <button class="btn" id="swCurtainPullPreview" style="margin-left:6px">👁 先看怎么算</button>
+        </div>
+        <div id="swCurtainPullPlan" style="display:none"></div>
+      </div>
+
+      <div class="row no-print" style="margin-bottom:12px;align-items:center">
+        <button class="btn sm" id="swCurtainClear">🧹 清空窗帘数量</button>
+        <button class="btn sm" id="swCurtainPick">🔍 从报价表选窗帘</button>
+        <span style="font-size:12px;color:var(--muted)">单价来源：产品库报价表（含轨道）</span>
+      </div>
+      <div id="swCurtainTable"></div>
+      <div class="sw-print-total" style="border-top:2px solid var(--green);margin-top:14px">
+        <span>电动窗帘合计</span><span id="swCurtainsTotal">—</span>
+      </div>
+    </div>
+
+    <div class="card no-print">
+      <h3><span class="bar"></span>导出</h3>
+      <div class="sub">打印出来就是给客户的开关/窗帘报价单，可以单独用，也可以夹在总报价单里。</div>
+      <div class="row">
+        <button class="btn primary" id="swPrint">🖨️ 打印 / 存 PDF</button>
+        <button class="btn" id="swXlsx">📊 导出 Excel</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8 灯具 ============ -->
+  <section class="panel" id="p8">
+    <div class="card">
+      <h3><span class="bar"></span>从房间清单带入灯具数量</h3>
+      <div class="sub">
+        按<b>空间面积</b>自动算该装几个灯：客厅按射灯、厨卫按筒灯，密度用行业常规值，卡在上下限里不会算飞。
+        先看预览再带入，带入后照样能手改。
+      </div>
+      <div class="notice" id="swLightSrcInfo" style="margin-bottom:12px">
+        还没填房间清单。去第 1 步「户型与图纸」的房间表里填面积，再回来带入。
+      </div>
+      <div class="row" style="margin-bottom:12px;align-items:flex-end">
+        <div class="field"><label>布灯密度</label>
+          <select id="swLightStrategy" style="width:210px">
+            <option value="smart">按经验分（推荐）</option>
+            <option value="basic">基础够亮（灯少省钱）</option>
+            <option value="rich">重点照明（灯多一倍）</option>
+          </select>
+        </div>
+        <div class="field"><label>带入门店</label>
+          <select id="swLightModel" class="w240">
+            <option value="spotT3">Aqara 射灯 T3（¥169）</option>
+            <option value="spotT2Pro">Aqara 射灯 T2Pro（¥309）</option>
+            <option value="spotYH4">雅惠四代射灯（¥99）</option>
+            <option value="spotV1">Aqara 射灯 V1（¥539）</option>
+            <option value="downT2Pro">Aqara 筒灯 T2Pro（¥309）</option>
+            <option value="downE20">E20 嵌入式筒灯（¥299）</option>
+            <option value="downXBN">肖邦太阳神筒灯（¥193）</option>
+          </select>
+        </div>
+        <div class="field"><label>光束角度（射灯/筒灯）</label>
+          <select id="swLightBeam" class="w120">
+            <option value="">默认</option>
+          </select>
+        </div>
+        <button class="btn primary" id="swLightPull">↓ 从房间清单带入</button>
+        <button class="btn" id="swLightPreview" style="margin-left:6px">👁 先看怎么分</button>
+      </div>
+      <div id="swLightPlan" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>灯带空间明细（自动配驱动/电源）</h3>
+      <div class="sub">
+        按<b>空间</b>逐行填灯带：不同空间可以选不同灯带型号和米数。
+        选<b>双色温灯带 T2</b> 会自动配：<b>1 个智能灯带驱动模块</b> + <b>每 10 米 1 个 PWM 调光模块</b>（不足 10 米按 10 米算）。
+        电源按<b>每满 10 米加 100W</b>、<b>200W 规格向上取整</b>自动配。
+      </div>
+      <div class="notice" style="margin-bottom:12px">
+        <b>示例：</b>客厅 25 米双色温灯带 → 灯带 25 米 + 驱动模块 1 个 + PWM 模块 3 个 + 200W 电源 2 个。
+      </div>
+      <div class="row" style="margin-bottom:12px;align-items:flex-end">
+        <div class="field"><label>灯带用量密度</label>
+          <select id="swStripStrategy" style="width:210px">
+            <option value="smart">按经验分（推荐）</option>
+            <option value="basic">基础够亮（少走一点）</option>
+            <option value="rich">重点照明（走满一圈）</option>
+          </select>
+        </div>
+        <div class="field"><label>默认灯带型号</label>
+          <select id="swStripModel" class="w240">
+            <option value="stripTwo">Aqara 双色温灯带 T2（¥65/米）</option>
+            <option value="stripOne">Aqara 单色温灯带（¥60/米）</option>
+            <option value="stripRGB">RGBW 灯带（¥95/米）</option>
+            <option value="stripH1">臻彩光四色裸板灯带 H1（¥80/米）</option>
+          </select>
+        </div>
+        <button class="btn primary" id="swStripPull">↓ 从房间清单带入</button>
+        <button class="btn" id="swStripPreview" style="margin-left:6px">👁 先看怎么算</button>
+        <button class="btn" id="swAddStripLine" style="margin-left:auto">+ 增加一行</button>
+      </div>
+      <div id="swStripPlan" style="display:none"></div>
+      <div id="swStripLines"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="bar"></span>照明灯具</h3>
+      <div class="sub">
+        <b>单价全部从报价表自动提取</b>（产品库方案模板 2026.9.19.xlsx）。报价表改了价，这里跟着变，不用改代码。
+        射灯/筒灯可换<b>光束角度</b>，换角度自动跟报价表价；数量 × 单价自动出小计。
+      </div>
+      <div class="row no-print" style="margin-bottom:12px;align-items:center">
+        <button class="btn sm" id="swLightPick">🔍 从报价表选灯具</button>
+        <button class="btn sm" id="swLightClear">🧹 清空灯具数量</button>
+        <span style="font-size:12px;color:var(--muted)" id="swLightSrc">单价来源：产品库报价表</span>
+      </div>
+      <div id="swLightTable"></div>
+      <div class="sw-print-total" style="border-top:2px solid var(--green);margin-top:14px">
+        <span>照明灯具合计</span><span id="swLightsTotal">—</span>
+      </div>
+      <div class="notice" style="margin-top:12px">
+        <b>安装调试服务费：</b>按「开关设备合计 + 网关/传感器/中控屏合计 + 窗帘电机合计 + <b>照明灯具合计</b>」的 <b>30%</b> 自动计算。
+      </div>
+    </div>
+
+    <div class="card no-print">
+      <h3><span class="bar"></span>导出</h3>
+      <div class="sub">打印出来就是给客户的灯具清单，可以单独用，也可以夹在总报价单里。</div>
+      <div class="row">
+        <button class="btn primary" id="ltPrint">🖨️ 打印 / 存 PDF</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 产品选择器 -->
+<div id="mask">
+  <div class="dialog">
+    <div class="dh">
+      <b id="pickTitle">选择产品</b>
+      <button class="x" id="pickClose">×</button>
+    </div>
+    <div class="db">
+      <div class="row" style="margin-bottom:8px">
+        <input type="text" id="pickSearch" placeholder="搜产品名 / 型号 / 作用…" class="w300" style="border:1px solid var(--line);border-radius:8px;padding:8px">
+        <select id="pickSrc" style="border:1px solid var(--line);border-radius:8px;padding:8px"></select>
+        <span id="pickInfo" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div id="pickList" style="max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- 电动窗帘 · 从报价表选 -->
+<div id="curtainMask">
+  <div class="dialog">
+    <div class="dh">
+      <b id="cpTitle">🔍 从报价表选电动窗帘</b>
+      <button class="x" id="cpClose">×</button>
+    </div>
+    <div class="db">
+      <div class="row" style="margin-bottom:8px;align-items:center">
+        <input type="text" id="cpSearch" placeholder="搜窗帘 / 罗马杆 / 型号…" style="flex:1;min-width:220px;border:1px solid var(--line);border-radius:9px;padding:8px 10px">
+        <span id="cpInfo" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div id="cpList" style="max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 照明灯具 · 从报价表选 -->
+<div id="lightMask">
+  <div class="dialog">
+    <div class="dh">
+      <b id="lpTitle">🔍 从报价表选灯具</b>
+      <button class="x" id="lpClose">×</button>
+    </div>
+    <div class="db">
+      <div class="row" style="margin-bottom:8px;align-items:center">
+        <input type="text" id="lpSearch" placeholder="搜灯具名 / 型号 / 作用…" style="flex:1;min-width:220px;border:1px solid var(--line);border-radius:9px;padding:8px 10px">
+        <span id="lpInfo" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div id="lpList" style="max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding-bottom:6px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AI 识图弹窗 ============ -->
+<div id="aiMask">
+  <div class="dialog ai-dlg">
+    <div class="dh"><b>🤖 AI 识别房间</b><button class="x" id="aiClose">×</button></div>
+    <div class="db">
+      <div class="cost-note">
+        用的是<b>你自己的</b>第三方视觉模型 API，费用走<b>你自己的账户</b>，
+        每次约 <b>¥0.01–0.05</b>。不占用本平台任何积分，图纸也不会传到第三方以外的地方。<br>
+        <span style="color:var(--muted)">没 Key 也能用：关掉这里，点「✏️ 图上标房间」免费手标。</span>
+      </div>
+
+      <div class="fgrid">
+        <div class="field"><label>服务商</label>
+          <select id="aiProv" style="border:1px solid var(--line);border-radius:8px;padding:8px;width:100%"></select>
+        </div>
+        <div class="field"><label>API Key（只存本机）</label>
+          <input type="password" id="aiKey" placeholder="sk-…" style="border:1px solid var(--line);border-radius:8px;padding:8px;width:100%">
+        </div>
+        <div class="field"><label>接口地址</label>
+          <input type="text" id="aiUrl" style="border:1px solid var(--line);border-radius:8px;padding:8px;width:100%">
+        </div>
+        <div class="field"><label>模型名</label>
+          <input type="text" id="aiModel" style="border:1px solid var(--line);border-radius:8px;padding:8px;width:100%">
+        </div>
+      </div>
+      <div class="prov-tip" id="aiProvTip"></div>
+
+      <label class="chk"><input type="checkbox" id="aiReplace"> 识别结果<b>覆盖</b>现有房间（不勾＝追加在后面）</label>
+
+      <div class="ai-act">
+        <button class="btn primary" id="aiRun">开始识别</button>
+        <span class="ai-status" id="aiStatus"></span>
+      </div>
+
+      <div id="aiResult" style="display:none">
+        <div class="ai-h">识别结果（能直接改，改完点写入）</div>
+        <div class="tbl-wrap"><table class="pts" id="aiTable"></table></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="aiApply">✓ 写入房间表</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/products.js"></script>
+<script src="js/vision.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/panels.js"></script>
+<script src="js/xlsx.js"></script>
+<script src="js/spend.js"></script>
+<script src="js/quote-switch.js"></script>
+<script src="js/app.js"></script>
+
+<!-- ===== PWA：注册 Service Worker + 安装引导 =====
+     注意：Service Worker 只在 https 或 localhost 下才注册，
+     手机通过局域网 IP（http://192.168.x.x）访问时不会生效，这是浏览器安全策略。 -->
+<script>
+(function () {
+  /* ---------- Service Worker ---------- */
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').then(function (reg) {
+        /* 有新版本就静默更新，下次打开生效，不打断当前报价 */
+        reg.addEventListener('updatefound', function () {
+          var sw = reg.installing;
+          if (!sw) return;
+          sw.addEventListener('statechange', function () {
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[智装点位通] 新版本已就绪，下次打开生效');
+            }
+          });
+        });
+      }).catch(function (e) {
+        console.log('[智装点位通] SW 注册失败：' + e.message);
+      });
+    });
+  }
+
+  /* ---------- 安装到手机桌面 ----------
+     iOS Safari 没有 beforeinstallprompt，得给个「分享 → 添加到主屏幕」的提示。
+     安卓 Chrome 走标准事件，自动弹自定义按钮。 */
+  var deferred = null;
+  var btn = document.getElementById('pwaInstallBtn');
+  var tip = document.getElementById('pwaTip');
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferred = e;
+    if (btn) { btn.style.display = ''; }
+  });
+
+  if (btn) {
+    btn.onclick = function () {
+      if (deferred) {
+        deferred.prompt();
+        deferred.userChoice.then(function () { deferred = null; btn.style.display = 'none'; });
+      } else if (tip) {
+        tip.style.display = tip.style.display === 'none' ? '' : 'none';
+      }
+    };
+  }
+
+  /* iOS 判断：装没装到主屏（standalone）决定要不要提示 */
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (isIOS && !standalone && tip) {
+    tip.style.display = '';
+    if (btn) { btn.textContent = '📲 怎么装'; }
+  }
+
+  /* 已装成 App 就不再显示安装条 */
+  if (standalone && btn) btn.style.display = 'none';
+})();
+</script>
+</body>
+</html>
