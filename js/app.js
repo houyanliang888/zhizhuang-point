@@ -797,7 +797,34 @@
   /* =========================================================
      导出
      ========================================================= */
-  function doXlsx() {
+  /* 加载一张产品图 → 96×96 白底 PNG（canvas 重编码，嵌入 Excel） */
+  function loadImgPx(url) {
+    return new Promise(function (resolve) {
+      var im = new Image();
+      im.onload = function () {
+        try {
+          var c = document.createElement('canvas');
+          c.width = 96; c.height = 96;
+          var ctx = c.getContext('2d');
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 96, 96);
+          var sc = Math.min(96 / im.width, 96 / im.height);
+          var w = im.width * sc, h = im.height * sc;
+          ctx.drawImage(im, (96 - w) / 2, (96 - h) / 2, w, h);
+          c.toBlob(function (b) {
+            if (!b) return resolve(null);
+            var fr = new FileReader();
+            fr.onload = function () { resolve({ data: new Uint8Array(fr.result), ext: 'png', key: url }); };
+            fr.onerror = function () { resolve(null); };
+            fr.readAsArrayBuffer(b);
+          }, 'image/png');
+        } catch (e) { resolve(null); }
+      };
+      im.onerror = function () { resolve(null); };
+      im.src = url;
+    });
+  }
+
+  async function doXlsx() {
     if (!curPoints().length) { toast('还没有点位可导出'); return; }
     var s = sumPoints(curPoints());
     var install = parseFloat($('installFee').value) || 0;
@@ -812,11 +839,11 @@
     var merged1 = [], rowH1 = {};
     var CN = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
-    rows1.push([{ v: '空间智能配置表', s: 4 }, '', '', '', '', '', '', '']);
-    rowH1[1] = 46; merged1.push({ a: 'A1', b: 'H1' });
-    rows1.push([{ v: '项目：' + (S.projectName || '未命名') + '　|　报价日期：' + date + '　|　侯哥智改 · 全屋智能设计', s: 11 }, '', '', '', '', '', '', '']);
-    rowH1[2] = 24; merged1.push({ a: 'A2', b: 'H2' });
-    rows1.push(['序号', '区域', '产品名称', '作用 / 说明', '单价', '数量', '价格', '备注'].map(function (w) { return { v: w, s: 5 }; }));
+    rows1.push([{ v: '空间智能配置表', s: 4 }, '', '', '', '', '', '', '', '']);
+    rowH1[1] = 46; merged1.push({ a: 'A1', b: 'I1' });
+    rows1.push([{ v: '项目：' + (S.projectName || '未命名') + '　|　报价日期：' + date + '　|　侯哥智改 · 全屋智能设计', s: 11 }, '', '', '', '', '', '', '', '']);
+    rowH1[2] = 24; merged1.push({ a: 'A2', b: 'I2' });
+    rows1.push(['序号', '区域', '产品名称', '作用 / 说明', '单价', '数量', '价格', '图片', '备注'].map(function (w) { return { v: w, s: 5 }; }));
     rowH1[3] = 28;
 
     /* 按区域分组（保持房间首次出现顺序），区域列纵向合并 */
@@ -827,6 +854,7 @@
     });
 
     var no = 0, firstRow = 4, r = 4;
+    var imgJobs = [];
     groups.forEach(function (g) {
       var startRow = r + 1;
       g.items.forEach(function (p) {
@@ -834,6 +862,8 @@
         var pr = findProd(p.prodKey);
         var model = pr ? (pr.name || pr.type) : '—';
         var spec = pr ? (pr.spec || '') : '';
+        var imgUrl = pr ? productImg(pr.type, pr.name || pr.type) : null;
+        if (imgUrl) imgJobs.push({ url: imgUrl, row: r });
         rows1.push([
           { v: no, s: 8 },
           { v: (r + 1) === startRow ? g.name : '', s: 10 },
@@ -842,6 +872,7 @@
           { v: p.price, s: 9 },
           { v: p.qty, s: 8 },
           { v: '=E' + (r + 1) + '*F' + (r + 1), s: 9 },
+          { v: '', s: 8 },
           { v: p.note || '', s: 7 }
         ]);
         rowH1[r + 1] = 30;
@@ -853,19 +884,19 @@
 
     var devEnd = r;
     r++;
-    rows1.push([{ v: '安装调试费 + 试机费 · 辅料（设备费 × 30%）', s: 12 }, '', '', '', '', '', { v: install, s: 9 }, { v: '', s: 12 }]);
+    rows1.push([{ v: '安装调试费 + 试机费 · 辅料（设备费 × 30%）', s: 12 }, '', '', '', '', '', { v: install, s: 9 }, { v: '', s: 12 }, { v: '', s: 12 }]);
     merged1.push({ a: 'A' + r, b: 'F' + r });
     rowH1[r] = 30;
     if (extra > 0) {
       r++;
-      rows1.push([{ v: '其他费用', s: 12 }, '', '', '', '', '', { v: extra, s: 9 }, { v: '', s: 12 }]);
+      rows1.push([{ v: '其他费用', s: 12 }, '', '', '', '', '', { v: extra, s: 9 }, { v: '', s: 12 }, { v: '', s: 12 }]);
       merged1.push({ a: 'A' + r, b: 'F' + r });
       rowH1[r] = 30;
     }
     r++;
     rows1.push([{ v: '总　计（含安装调试与辅材）', s: 13 }, '', '', '', '', '',
       { v: '=SUM(G' + firstRow + ':G' + devEnd + ')+G' + (devEnd + 1) + (extra > 0 ? '+G' + (devEnd + 2) : ''), s: 14 },
-      { v: '', s: 13 }]);
+      { v: '', s: 13 }, { v: '', s: 13 }]);
     merged1.push({ a: 'A' + r, b: 'F' + r });
     rowH1[r] = 36;
 
@@ -893,12 +924,24 @@
     });
     rows2.push(['合计','', S.rooms.reduce(function (a, r) { return a + curtainQty(r); }, 0), '']);
 
+    var sheet1 = {
+      name: '报价清单', widths: [5.5, 9, 24, 34, 9.5, 6, 11, 7, 14],
+      rows: rows1, merged: merged1, rowHeights: rowH1,
+      freeze: 3, page: { repeatRows: '3:3' }
+    };
+    /* 嵌产品图：并行加载（每张缩成 36×36 白底），加载失败的自动跳过不阻断导出 */
+    if (imgJobs.length) {
+      var loaded = await Promise.all(imgJobs.map(function (j) { return loadImgPx(j.url); }));
+      var images = [];
+      loaded.forEach(function (res, k) {
+        if (res) images.push({ row: imgJobs[k].row - 1, col: 7, data: res.data, w: 36, h: 36, ext: 'png', key: imgJobs[k].url });
+      });
+      if (images.length) sheet1.images = images;
+      toast(images.length ? ('已配 ' + images.length + ' 张产品图') : '未匹配到产品图，仅导出表格');
+    }
+
     var sheets = [
-      {
-        name: '报价清单', widths: [5.5, 9, 24, 38, 9.5, 6, 11, 14],
-        rows: rows1, merged: merged1, rowHeights: rowH1,
-        freeze: 3, page: { repeatRows: '3:3' }
-      },
+      sheet1,
       { name: '汇总与档位对比', rows: rows2, widths: [16, 18, 16, 30] },
       {
         name: '产品库', widths: [14, 30, 22, 50, 10, 7],

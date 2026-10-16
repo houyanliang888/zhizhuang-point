@@ -8,7 +8,9 @@ var XLSX_UTIL = (function () {
   var crcTable = (function () {
     var t = new Uint32Array(256);
     for (var n = 0; n < 256; n++) {
-      for (var k = 0; k < 8; k++) { t[n] = (t[n] >>> 1) ^ ((n & 1) ? 0xEDB88320 : 0); }
+      var c = n;
+      for (var k = 0; k < 8; k++) { c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); }
+      t[n] = c;
     }
     return t;
   })();
@@ -138,15 +140,36 @@ var XLSX_UTIL = (function () {
     '</cellXfs><cellStyles count="1"><cellStyle name="常规" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
 
   /* sheets: [{ name, rows:[[cell]...], widths:[], merged:[{a,b}],
-              rowHeights:{1:42,...}, freeze:3, page:{fitToWidth:1, repeatRows:'3:3'} }] */
+              rowHeights:{1:42,...}, freeze:3, page:{fitToWidth:1, repeatRows:'3:3'},
+              images:[{row,col,data,w,h,ext}]  ← 0-based，data 为图片二进制 }] */
   function build(sheets) {
     var files = [];
+    /* 收集所有 sheet 的图片，media 全局编号；相同 key 的图只存一份 */
+    var allImages = [], imgCounter = 0, mediaKeys = {};
+    sheets.forEach(function (s, si) {
+      (s.images || []).forEach(function (img) {
+        var key = img.key || 'img' + imgCounter;
+        if (mediaKeys[key]) { img._name = mediaKeys[key]; return; }
+        imgCounter++;
+        img._name = 'image' + imgCounter + '.' + (img.ext || 'png');
+        mediaKeys[key] = img._name;
+        allImages.push({ img: img, si: si });
+      });
+    });
+    var hasDrawing = sheets.some(function (s) { return s.images && s.images.length > 0; });
+
     files.push({ name: '[Content_Types].xml', data: enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
       '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
       '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Default Extension="png" ContentType="image/png"/>' +
+      '<Default Extension="jpg" ContentType="image/jpeg"/>' +
+      '<Default Extension="jpeg" ContentType="image/jpeg"/>' +
       '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
       sheets.map(function (s, i) { return '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join('') +
+      (hasDrawing ? sheets.map(function (s, i) {
+        return (s.images && s.images.length) ? '<Override PartName="/xl/drawings/drawing' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>' : '';
+      }).join('') : '') +
       '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
       '</Types>') });
 
@@ -218,9 +241,45 @@ var XLSX_UTIL = (function () {
           '<headerFooter><oddFooter>&amp;C第 &amp;P 页，共 &amp;N 页　·　侯哥智改·全屋智能设计</oddFooter></headerFooter>';
       }
 
+      /* 嵌图：sheet → drawing 关系 + <drawing> 引用 */
+      var drawingXml = '';
+      if (s.images && s.images.length) {
+        drawingXml = '<drawing r:id="rIdImg1"/>';
+        files.push({ name: 'xl/worksheets/_rels/sheet' + (si + 1) + '.xml.rels', data: enc(
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+          '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+          '<Relationship Id="rIdImg1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing' + (si + 1) + '.xml"/>' +
+          '</Relationships>') });
+        var anchors = s.images.map(function (img, k) {
+          var cx = Math.round((img.w || 36) * 9525), cy = Math.round((img.h || 36) * 9525);
+          return '<xdr:oneCellAnchor>' +
+            '<xdr:from><xdr:col>' + img.col + '</xdr:col><xdr:colOff>38100</xdr:colOff><xdr:row>' + img.row + '</xdr:row><xdr:rowOff>28575</xdr:rowOff></xdr:from>' +
+            '<xdr:ext cx="' + cx + '" cy="' + cy + '"/>' +
+            '<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="' + (k + 2) + '" name="图 ' + (k + 1) + '"/><xdr:cNvPicPr/></xdr:nvPicPr>' +
+            '<xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId' + (k + 1) + '"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>' +
+            '<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic>' +
+            '<xdr:clientData/></xdr:oneCellAnchor>';
+        }).join('');
+        files.push({ name: 'xl/drawings/drawing' + (si + 1) + '.xml', data: enc(
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+          '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' +
+          anchors + '</xdr:wsDr>') });
+        files.push({ name: 'xl/drawings/_rels/drawing' + (si + 1) + '.xml.rels', data: enc(
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+          '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+          s.images.map(function (img, k) {
+            return '<Relationship Id="rId' + (k + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/' + img._name + '"/>';
+          }).join('') + '</Relationships>') });
+      }
+
       files.push({ name: 'xl/worksheets/sheet' + (si + 1) + '.xml', data: enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' + sheetView + cols +
-        '<sheetData>' + body + '</sheetData>' + merge + page + '</worksheet>') });
+        '<sheetData>' + body + '</sheetData>' + merge + page + drawingXml + '</worksheet>') });
+    });
+
+    /* 图片二进制放最后统一写入（文件名已全局编号） */
+    allImages.forEach(function (rec) {
+      files.push({ name: 'xl/media/' + rec.img._name, data: rec.img.data });
     });
 
     return zip(files);
@@ -235,5 +294,5 @@ var XLSX_UTIL = (function () {
     setTimeout(function () { URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 500);
   }
 
-  return { build: build, download: download, enc: enc };
+  return { build: build, download: download, enc: enc, crc32: crc32 };
 })();
