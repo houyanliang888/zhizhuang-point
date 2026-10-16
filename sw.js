@@ -7,7 +7,7 @@
    版本号改了会自动清掉旧缓存，不会出现「改了代码页面还是旧的」。
    =========================================================== */
 
-var CACHE = 'zzdt-v1.26.0';
+var CACHE = 'zzdt-v1.26.1';
 
 /* 要预缓存的静态资源。products.js 有 160KB，产品库必须离线能用。 */
 var ASSETS = [
@@ -80,8 +80,9 @@ self.addEventListener('fetch', function (e) {
         }
         return res;
       }).catch(function () {
-        /* 断网时回退到缓存；连缓存都没有才算真没救 */
-        return hit || caches.match('./index.html');
+        /* 断网时回退到缓存；按入口回退对应页面（手机版断网不会掉进完整版） */
+        var fallback = (req.url.indexOf('mobile') > -1) ? './mobile.html' : './index.html';
+        return hit || caches.match(fallback) || caches.match('./index.html');
       });
       /* 有缓存先给缓存，保证秒开；没缓存等网络 */
       return hit || net;
