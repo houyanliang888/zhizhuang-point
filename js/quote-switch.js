@@ -47,19 +47,28 @@ var SWITCH_KEY_ORDER = [1, 2, 3, 4];
 
 /* ---------- 1.5 网关 / 传感器 / 中控屏 / 窗帘电机（v1.14.0 新增） ----------
    这里只放主销/高频款，作为第 7 页快速报价的默认参考价。
-   现场改价直接在前台输入框里改，不改这里。 */
+   现场改价直接在前台输入框里改，不改这里。
+
+   v1.24.2（按侯哥 2026.10.16 报价表截图对齐）：
+   - 传感器价格一律 quoteTablePrice(match, def) 从报价表实时取，报价表改价自动跟
+   - 人体 98 / 门窗 76 / 水浸 109（基础款），新增 T1 系列与 FP1E：
+     人体T1 199 / 门窗T1 129 / 水浸T1 159 / AI智能存在传感器 FP1E 349 */
 var EXTRA_DEVICES = {
   hubM3:      { id: 'hubM3',      name: '智能网关 M3',    unit: '个', price: 699,  icon: '🌐', desc: 'Aqara 方舟智慧中枢 M3' },
   hubMJ:      { id: 'hubMJ',      name: '米家中枢网关',   unit: '个', price: 349,  icon: '🔶', desc: '米家/小米中枢网关，米家生态首选' },
   hubM200:    { id: 'hubM200',    name: '智能网关 M200',  unit: '个', price: 599,  icon: '🌐', desc: '小米中枢网关 M200' },
-  motion:     { id: 'motion',     name: '人体传感器',     unit: '个', price: 89,   icon: '🚶', desc: '红外/毫米波人体存在传感器' },
-  door:       { id: 'door',       name: '门窗传感器',     unit: '个', price: 49,   icon: '🚪', desc: '门磁/窗磁传感器' },
-  water:      { id: 'water',      name: '水浸传感器',     unit: '个', price: 109,  icon: '💧', desc: '智能检测物体表面漏水状态，可联动报警' },
+  motion:     { id: 'motion',     name: '人体传感器',     unit: '个', price: quoteTablePrice('人体传感器', 98),  match: '人体传感器',  icon: '🚶', desc: '光照度检测 + 人/动物移动检测，联动执行场景' },
+  motionT1:   { id: 'motionT1',   name: '人体传感器 T1',  unit: '个', price: quoteTablePrice('人体传感器T1', 199), match: '人体传感器T1', icon: '🚶', desc: 'Zigbee3.0，光照度 + 移动检测，T1 升级款' },
+  fp1e:       { id: 'fp1e',       name: 'AI智能存在传感器 FP1E', unit: '个', price: quoteTablePrice('AI智能存在传感器 FP1E', 349), match: 'AI智能存在传感器 FP1E', icon: '📡', desc: '毫米波雷达，精准检测人在状态' },
+  door:       { id: 'door',       name: '门窗传感器',     unit: '个', price: quoteTablePrice('门窗传感器', 76),  match: '门窗传感器',  icon: '🚪', desc: '检测门窗开关状态，联动执行场景' },
+  doorT1:     { id: 'doorT1',     name: '门窗传感器 T1',  unit: '个', price: quoteTablePrice('门窗传感器T1', 129), match: '门窗传感器T1', icon: '🚪', desc: 'Zigbee3.0，检测门窗开关状态，T1 升级款' },
+  water:      { id: 'water',      name: '水浸传感器',     unit: '个', price: quoteTablePrice('水浸传感器', 109), match: '水浸传感器',  icon: '💧', desc: '智能检测物体表面漏水状态，可联动报警' },
+  waterT1:    { id: 'waterT1',    name: '水浸传感器 T1',  unit: '个', price: quoteTablePrice('水浸传感器T1', 159), match: '水浸传感器T1', icon: '💧', desc: 'Zigbee3.0，检测漏水并联动报警，T1 升级款' },
   siPanel:    { id: 'siPanel',    name: 'SI 集悦中控屏',  unit: '个', price: 1299, icon: '📱', desc: 'SI 集悦智慧中控屏' },
   speaker:    { id: 'speaker',    name: '小爱音箱 Pro',   unit: '个', price: 369,  icon: '🔊', desc: '小爱智能音箱 Pro，语音控制入口' }
 };
-var EXTRA_ORDER = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'door', 'water', 'siPanel', 'speaker'];
-var EXTRA_HUB_SENSOR_PANEL = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'door', 'water', 'siPanel', 'speaker'];
+var EXTRA_ORDER = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'motionT1', 'fp1e', 'door', 'doorT1', 'water', 'waterT1', 'siPanel', 'speaker'];
+var EXTRA_HUB_SENSOR_PANEL = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'motionT1', 'fp1e', 'door', 'doorT1', 'water', 'waterT1', 'siPanel', 'speaker'];
 var EXTRA_INSTALL_RATE = 0.30;   /* 安装调试服务费 = 设备费 × 30% */
 
 /* ---------- 1.7 电动窗帘（v1.18 重做） ----------
