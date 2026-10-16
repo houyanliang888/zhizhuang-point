@@ -805,37 +805,69 @@
     var grand = s.total + install + extra;
     var date = $('quoteDate').value || today();
 
-    /* 报价清单：列序对齐侯哥模板 序号|设备类型|设备型号|作用|数量|价格|小计
-       （本工具在前面插入「区域」，小计写公式，Excel 里改数量即自动重算） */
-    var rows1 = [['序号', '区域', '设备类型', '设备型号', '作用', '数量', '价格', '小计', '备注']];
-    var no = 0, firstRow = 2, lastRow = 2;
+    /* —— A4 打印版「空间智能配置表」——
+       版式：标题 → 项目信息 → 表头（打印时每页重复）→ 按区域分组（区域列合并）
+             → 安装调试费 → 总计；价格列写公式 =单价×数量，Excel 里改数量自动重算 */
+    var rows1 = [];
+    var merged1 = [], rowH1 = {};
+    var CN = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+    rows1.push([{ v: '空间智能配置表', s: 4 }, '', '', '', '', '', '', '']);
+    rowH1[1] = 46; merged1.push({ a: 'A1', b: 'H1' });
+    rows1.push([{ v: '项目：' + (S.projectName || '未命名') + '　|　报价日期：' + date + '　|　侯哥智改 · 全屋智能设计', s: 11 }, '', '', '', '', '', '', '']);
+    rowH1[2] = 24; merged1.push({ a: 'A2', b: 'H2' });
+    rows1.push(['序号', '区域', '产品名称', '作用 / 说明', '单价', '数量', '价格', '备注'].map(function (w) { return { v: w, s: 5 }; }));
+    rowH1[3] = 28;
+
+    /* 按区域分组（保持房间首次出现顺序），区域列纵向合并 */
+    var groups = [], gIdx = {};
     curPoints().forEach(function (p) {
-      no++;
-      var pr = findProd(p.prodKey);
-      var type = pr ? (CAT_CN[pr.cat] || pr.type) : '';
-      var model = pr ? (pr.name || pr.type) : '—';
-      rows1.push([no, p.roomName, type, model, pr ? pr.spec : '', p.qty, p.price, '=F' + (no + 1) + '*G' + (no + 1), p.note || '']);
-      lastRow = no + 1;
+      if (gIdx[p.roomName] === undefined) { gIdx[p.roomName] = groups.length; groups.push({ name: p.roomName, items: [] }); }
+      groups[gIdx[p.roomName]].items.push(p);
     });
-    rows1.push([]);
-    /* 分区域小计 */
-    var byRoom = {}, rn = 0;
-    var idx = {};
-    curPoints().forEach(function (p) { byRoom[p.roomName] = (byRoom[p.roomName] || 0) + p.price * p.qty; });
-    var r = lastRow + 1;
-    Object.keys(byRoom).forEach(function (k) {
-      idx[k] = r;
-      rows1.push(['', '小计 · ' + k, '', '', '', '', '', '=SUM(H' + firstRow + ':H' + lastRow + ')', '']);
+
+    var no = 0, firstRow = 4, r = 4;
+    groups.forEach(function (g) {
+      var startRow = r + 1;
+      g.items.forEach(function (p) {
+        no++;
+        var pr = findProd(p.prodKey);
+        var model = pr ? (pr.name || pr.type) : '—';
+        var spec = pr ? (pr.spec || '') : '';
+        rows1.push([
+          { v: no, s: 8 },
+          { v: (r + 1) === startRow ? g.name : '', s: 10 },
+          { v: model, s: 6 },
+          { v: spec, s: 7 },
+          { v: p.price, s: 9 },
+          { v: p.qty, s: 8 },
+          { v: '=E' + (r + 1) + '*F' + (r + 1), s: 9 },
+          { v: p.note || '', s: 7 }
+        ]);
+        rowH1[r + 1] = 30;
+        r++;
+      });
+      if (r > startRow) merged1.push({ a: 'B' + startRow, b: 'B' + r });
+      lastRow = r;
+    });
+
+    var devEnd = r;
+    r++;
+    rows1.push([{ v: '安装调试费 + 试机费 · 辅料（设备费 × 30%）', s: 12 }, '', '', '', '', '', { v: install, s: 9 }, { v: '', s: 12 }]);
+    merged1.push({ a: 'A' + r, b: 'F' + r });
+    rowH1[r] = 30;
+    if (extra > 0) {
       r++;
-    });
+      rows1.push([{ v: '其他费用', s: 12 }, '', '', '', '', '', { v: extra, s: 9 }, { v: '', s: 12 }]);
+      merged1.push({ a: 'A' + r, b: 'F' + r });
+      rowH1[r] = 30;
+    }
     r++;
-    rows1.push(['', '设备材料合计', '', '', '', '', '', '=SUM(H' + firstRow + ':H' + lastRow + ')', '']);
-    r++;
-    rows1.push(['', '安装调试费+辅材', '', '', '', '', '', install, '']);
-    r++;
-    rows1.push(['', '其他费用', '', '', '', '', '', extra, '']);
-    r++;
-    rows1.push(['', '总计', '', '', '', '', '', '=H' + (r - 2) + '+H' + (r - 1) + '+H' + r, '']);
+    rows1.push([{ v: '总　计（含安装调试与辅材）', s: 13 }, '', '', '', '', '',
+      { v: '=SUM(G' + firstRow + ':G' + devEnd + ')+G' + (devEnd + 1) + (extra > 0 ? '+G' + (devEnd + 2) : ''), s: 14 },
+      { v: '', s: 13 }]);
+    merged1.push({ a: 'A' + r, b: 'F' + r });
+    rowH1[r] = 36;
 
     var t1 = calcTier(1), t2 = calcTier(2), t3 = calcTier(3);
     var rows2 = [
@@ -863,8 +895,9 @@
 
     var sheets = [
       {
-        name: '报价清单', widths: [6, 12, 26, 22, 46, 7, 10, 12, 20],
-        rows: rows1
+        name: '报价清单', widths: [5.5, 9, 24, 38, 9.5, 6, 11, 14],
+        rows: rows1, merged: merged1, rowHeights: rowH1,
+        freeze: 3, page: { repeatRows: '3:3' }
       },
       { name: '汇总与档位对比', rows: rows2, widths: [16, 18, 16, 30] },
       {

@@ -1,15 +1,14 @@
 /* ===========================================================
    纯 JS 生成 .xlsx（无依赖、离线可用）
    原理：手写 ZIP（store 模式）+ 最小 OOXML 表格结构
+   v1.25：新增 深蓝表头/标题样式、行高、A4 打印设置（每页重复表头+页码页脚）、冻结窗格
    =========================================================== */
 
 var XLSX_UTIL = (function () {
   var crcTable = (function () {
     var t = new Uint32Array(256);
     for (var n = 0; n < 256; n++) {
-      var c = n;
-      for (var k = 0; k < 8; k++) { c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); }
-      t[n] = c >>> 0;
+      for (var k = 0; k < 8; k++) { t[n] = (t[n] >>> 1) ^ ((n & 1) ? 0xEDB88320 : 0); }
     }
     return t;
   })();
@@ -76,7 +75,70 @@ var XLSX_UTIL = (function () {
     return s;
   }
 
-  /* sheets: [{ name, rows:[[{v,s}] or [value]], widths:[], merged:[{a,b}] }] */
+  /* ---------- 样式表 ----------
+     0  默认
+     1  表头（浅蓝底）
+     2  加粗合计
+     3  货币
+     4  大标题：白字 16pt 加粗，藏蓝底，居中
+     5  深蓝表头：白字 11pt 加粗，藏蓝底，居中
+     6  产品名称：加粗，自动换行
+     7  作用/说明：10pt 灰字，自动换行
+     8  居中：序号/数量
+     9  货币右对齐（带边框）
+     10 区域列：加粗居中，浅灰蓝底
+     11 项目信息行：10pt 灰字居中
+     12 安装费行：加粗，浅橙底
+     13 总计行：白字 12pt 加粗，藏蓝底
+     14 备注/左对齐普通带边框 */
+  var NAVY = 'FF0E2147', ORANGE_SOFT = 'FFFFF1E6', GRAYBLUE = 'FFF2F5FA';
+  var stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<numFmts count="1"><numFmt numFmtId="176" formatCode="&quot;¥&quot;#,##0"/></numFmts>' +
+    '<fonts count="7">' +
+    '<font><sz val="11"/><color rgb="FF1F2937"/><name val="微软雅黑"/></font>' +                                  /* 0 默认 */
+    '<font><b/><sz val="11"/><color rgb="FF1F2937"/><name val="微软雅黑"/></font>' +                              /* 1 加粗 */
+    '<font><b/><sz val="12"/><color rgb="FF1F2937"/><name val="微软雅黑"/></font>' +                              /* 2 加粗12 */
+    '<font><b/><sz val="16"/><color rgb="FFFFFFFF"/><name val="微软雅黑"/></font>' +                              /* 3 标题白16 */
+    '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="微软雅黑"/></font>' +                              /* 4 表头白11 */
+    '<font><sz val="10"/><color rgb="FF5B6B82"/><name val="微软雅黑"/></font>' +                                  /* 5 灰10 */
+    '<font><b/><sz val="12"/><color rgb="FFFFFFFF"/><name val="微软雅黑"/></font>' +                              /* 6 白12加粗 */
+    '</fonts>' +
+    '<fills count="6">' +
+    '<fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FFE8EEF7"/><bgColor indexed="64"/></patternFill></fill>' +  /* 2 浅蓝 */
+    '<fill><patternFill patternType="solid"><fgColor rgb="' + NAVY + '"/><bgColor indexed="64"/></patternFill></fill>' +  /* 3 藏蓝 */
+    '<fill><patternFill patternType="solid"><fgColor rgb="' + GRAYBLUE + '"/><bgColor indexed="64"/></patternFill></fill>' + /* 4 浅灰蓝 */
+    '<fill><patternFill patternType="solid"><fgColor rgb="' + ORANGE_SOFT + '"/><bgColor indexed="64"/></patternFill></fill>' /* 5 浅橙 */
+    '</fills>' +
+    '<borders count="3">' +
+    '<border><left/><right/><top/><bottom/><diagonal/></border>' +
+    '<border><left style="thin"><color rgb="FFBFCADA"/></left><right style="thin"><color rgb="FFBFCADA"/></right>' +
+    '<top style="thin"><color rgb="FFBFCADA"/></top><bottom style="thin"><color rgb="FFBFCADA"/></bottom><diagonal/></border>' +
+    '<border><left style="thin"><color rgb="FFD8DEE8"/></left><right style="thin"><color rgb="FFD8DEE8"/></right>' +
+    '<top style="thin"><color rgb="FFD8DEE8"/></top><bottom style="thin"><color rgb="FFD8DEE8"/></bottom><diagonal/></border>' +
+    '</borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="15">' +
+    /* 0 */ '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+    /* 1 */ '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+    /* 2 */ '<xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1"/>' +
+    /* 3 */ '<xf numFmtId="176" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/>' +
+    /* 4 标题 */ '<xf numFmtId="0" fontId="3" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+    /* 5 深蓝表头 */ '<xf numFmtId="0" fontId="4" fillId="3" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+    /* 6 产品名 */ '<xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>' +
+    /* 7 作用 */ '<xf numFmtId="0" fontId="5" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>' +
+    /* 8 居中 */ '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+    /* 9 货币右 */ '<xf numFmtId="176" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>' +
+    /* 10 区域 */ '<xf numFmtId="0" fontId="1" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+    /* 11 信息行 */ '<xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+    /* 12 安装费 */ '<xf numFmtId="0" fontId="1" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>' +
+    /* 13 总计 */ '<xf numFmtId="0" fontId="6" fillId="3" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>' +
+    /* 14 总计货币 */ '<xf numFmtId="176" fontId="6" fillId="3" borderId="2" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>' +
+    '</cellXfs><cellStyles count="1"><cellStyle name="常规" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  /* sheets: [{ name, rows:[[cell]...], widths:[], merged:[{a,b}],
+              rowHeights:{1:42,...}, freeze:3, page:{fitToWidth:1, repeatRows:'3:3'} }] */
   function build(sheets) {
     var files = [];
     files.push({ name: '[Content_Types].xml', data: enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
@@ -93,10 +155,19 @@ var XLSX_UTIL = (function () {
       '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
       '</Relationships>') });
 
+    /* 打印时每页重复表头行（_xlnm.Print_Titles） */
+    var printTitles = [];
+    sheets.forEach(function (s, i) {
+      if (s.page && s.page.repeatRows) {
+        printTitles.push('<definedName name="_xlnm.Print_Titles" localSheetId="' + i + '">\''
+          + esc(s.name).replace(/'/g, "''") + '\'!$' + s.page.repeatRows.split(':')[0] + ':$' + s.page.repeatRows.split(':')[1] + '</definedName>');
+      }
+    });
     files.push({ name: 'xl/workbook.xml', data: enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
       '<sheets>' + sheets.map(function (s, i) { return '<sheet name="' + esc(s.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>'; }).join('') +
-      '</sheets></workbook>') });
+      '</sheets>' + (printTitles.length ? '<definedNames>' + printTitles.join('') + '</definedNames>' : '') +
+      '</workbook>') });
 
     files.push({ name: 'xl/_rels/workbook.xml.rels', data: enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
@@ -104,56 +175,52 @@ var XLSX_UTIL = (function () {
       '<Relationship Id="rId' + (sheets.length + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
       '</Relationships>') });
 
-    /* styles: 0默认 1表头 2加粗合计 3货币 */
-    files.push({ name: 'xl/styles.xml', data: enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-      '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-      '<numFmts count="1"><numFmt numFmtId="176" formatCode="&quot;¥&quot;#,##0.00"/></numFmts>' +
-      '<fonts count="3"><font><sz val="11"/><color rgb="FF1F2937"/><name val="微软雅黑"/></font>' +
-      '<font><b/><sz val="11"/><color rgb="FF1F2937"/><name val="微软雅黑"/></font>' +
-      '<font><b/><sz val="12"/><color rgb="FF1F2937"/><name val="微软雅黑"/></font></fonts>' +
-      '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
-      '<fill><patternFill patternType="solid"><fgColor rgb="FFE8EEF7"/><bgColor indexed="64"/></patternFill></fill></fills>' +
-      '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>' +
-      '<border><left style="thin"><color rgb="FFBFCada"/></left><right style="thin"><color rgb="FFBFCada"/></right>' +
-      '<top style="thin"><color rgb="FFBFCada"/></top><bottom style="thin"><color rgb="FFBFCada"/></bottom><diagonal/></border></borders>' +
-      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
-      '<cellXfs count="4">' +
-      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
-      '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
-      '<xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1"/>' +
-      '<xf numFmtId="176" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/>' +
-      '</cellXfs><cellStyles count="1"><cellStyle name="常规" xfId="0" builtinId="0"/></cellStyles></styleSheet>') });
+    files.push({ name: 'xl/styles.xml', data: enc(stylesXml) });
 
     sheets.forEach(function (s, si) {
+      var rh = s.rowHeights || {};
       var body = s.rows.map(function (row, ri) {
         var cells = row.map(function (cell, ci) {
           var val = (cell && typeof cell === 'object') ? cell.v : cell;
-          var st = (cell && typeof cell === 'object' && cell.s !== undefined) ? cell.s : (ri === 0 ? 1 : 0);
+          var st = (cell && typeof cell === 'object' && cell.s !== undefined) ? cell.s : 0;
           var ref = colName(ci) + (ri + 1);
           if (typeof val === 'number' && isFinite(val)) {
             return '<c r="' + ref + '" s="' + st + '"><v>' + val + '</v></c>';
           }
           if (val === null || val === undefined || val === '') return '<c r="' + ref + '" s="' + st + '"/>';
-          /* 公式：以 = 开头的字符串原样写成公式，Excel 打开自动计算 */
           if (typeof val === 'string' && val.charAt(0) === '=') {
             return '<c r="' + ref + '" s="' + st + '"><f>' + esc(val.slice(1)) + '</f></c>';
           }
           return '<c r="' + ref + '" s="' + st + '" t="inlineStr"><is><t xml:space="preserve">' + esc(val) + '</t></is></c>';
         }).join('');
-        return '<row r="' + (ri + 1) + '">' + cells + '</row>';
+        var h = rh[ri + 1];
+        return '<row r="' + (ri + 1) + '"' + (h ? ' ht="' + h + '" customHeight="1"' : '') + '>' + cells + '</row>';
       }).join('');
 
       var cols = (s.widths && s.widths.length) ? '<cols>' + s.widths.map(function (w, i) {
         return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>';
       }).join('') + '</cols>' : '';
 
+      /* 冻结表头行（屏幕查看时表头不滚走） */
+      var sheetView = s.freeze
+        ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="' + s.freeze + '" topLeftCell="A' + (s.freeze + 1) + '" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+        : '';
+
       var merge = (s.merged && s.merged.length) ? '<mergeCells count="' + s.merged.length + '">' + s.merged.map(function (m) {
         return '<mergeCell ref="' + m.a + ':' + m.b + '"/>';
       }).join('') + '</mergeCells>' : '';
 
+      /* A4 打印：fitToWidth 单页宽、页边距、页脚页码 */
+      var page = '';
+      if (s.page) {
+        page = '<pageMargins left="0.3" right="0.3" top="0.5" bottom="0.55" header="0.2" footer="0.25"/>' +
+          '<pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/>' +
+          '<headerFooter><oddFooter>&amp;C第 &amp;P 页，共 &amp;N 页　·　侯哥智改·全屋智能设计</oddFooter></headerFooter>';
+      }
+
       files.push({ name: 'xl/worksheets/sheet' + (si + 1) + '.xml', data: enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' + cols +
-        '<sheetData>' + body + '</sheetData>' + merge + '</worksheet>') });
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' + sheetView + cols +
+        '<sheetData>' + body + '</sheetData>' + merge + page + '</worksheet>') });
     });
 
     return zip(files);
