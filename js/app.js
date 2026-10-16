@@ -1070,10 +1070,17 @@
       });
       renderMarkers();
     }
-    S.imgs.forEach(function (g) {
-      var d = document.createElement('div'); d.className = 'it';
+    S.imgs.forEach(function (g, gi) {
+      var d = document.createElement('div'); d.className = 'it' + (gi === 0 ? ' active' : '');
       d.innerHTML = '<img src="' + g.data + '" title="' + (g.kind === 'plan' ? '户型图' : '效果图') + '">' +
         '<button data-delimg="' + g.id + '">×</button>';
+      /* 点击缩略图 = 切换为主图（标注画布跟着换图） */
+      d.querySelector('img').onclick = function () {
+        if (gi === 0) return;
+        S.imgs.unshift(S.imgs.splice(gi, 1)[0]);
+        renderImgs();
+        toast('已切换为主图：' + (g.kind === 'plan' ? '户型图' : '效果图'));
+      };
       box.appendChild(d);
     });
     box.querySelectorAll('[data-delimg]').forEach(function (b) {
