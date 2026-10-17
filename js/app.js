@@ -986,28 +986,33 @@
     try {
       var arr = JSON.parse(localStorage.getItem('zd_saved') || '[]');
       if (!arr.length) { toast('还没有存过方案'); return; }
-      var html = '<div style="max-height:320px;overflow:auto"><table style="width:100%">';
-      arr.forEach(function (x, i) {
-        html += '<tr><td style="padding:8px;border-bottom:1px solid #eee">' + esc(x.name) + '<br><span style="color:#888;font-size:12px">' + x.time + '</span></td>' +
-          '<td style="white-space:nowrap"><button class="btn sm" data-ok="' + i + '">打开</button> ' +
-          '<button class="btn sm danger" data-del="' + i + '">删</button></td></tr>';
-      });
-      html += '</table></div>';
       var w = window.open('', '_blank', 'width=420,height=520');
       if (!w) { toast('浏览器拦截了窗口，请允许弹窗'); return; }
-      w.document.write('<meta charset="utf-8"><title>读取方案</title><link rel="stylesheet" href="css/style.css">' +
-        '<div style="max-width:420px;margin:16px"><h3>读取已保存方案</h3>' + html + '</div>');
-      w.document.close();
-      w.document.querySelectorAll('[data-ok]').forEach(function (b) {
-        b.onclick = function () { apply(arr[+b.dataset.ok].data); w.close(); };
-      });
-      w.document.querySelectorAll('[data-del]').forEach(function (b) {
-        b.onclick = function () {
-          arr.splice(+b.dataset.del, 1);
-          localStorage.setItem('zd_saved', JSON.stringify(arr));
-          w.location.reload();
-        };
-      });
+      /* 渲染列表（删除后重绘，不能 reload——Electron 里 reload about:blank 会变空白原生窗） */
+      function renderList() {
+        if (!arr.length) { w.close(); toast('存档已全部删除'); return; }
+        var html = '<div style="max-height:320px;overflow:auto"><table style="width:100%">';
+        arr.forEach(function (x, i) {
+          html += '<tr><td style="padding:8px;border-bottom:1px solid #eee">' + esc(x.name) + '<br><span style="color:#888;font-size:12px">' + x.time + '</span></td>' +
+            '<td style="white-space:nowrap"><button class="btn sm" data-ok="' + i + '">打开</button> ' +
+            '<button class="btn sm danger" data-del="' + i + '">删</button></td></tr>';
+        });
+        html += '</table></div>';
+        w.document.write('<meta charset="utf-8"><title>读取方案</title><link rel="stylesheet" href="css/style.css">' +
+          '<div style="max-width:420px;margin:16px"><h3>读取已保存方案</h3>' + html + '</div>');
+        w.document.close();
+        w.document.querySelectorAll('[data-ok]').forEach(function (b) {
+          b.onclick = function () { apply(arr[+b.dataset.ok].data); w.close(); };
+        });
+        w.document.querySelectorAll('[data-del]').forEach(function (b) {
+          b.onclick = function () {
+            arr.splice(+b.dataset.del, 1);
+            localStorage.setItem('zd_saved', JSON.stringify(arr));
+            renderList();   /* 重绘列表，替代 w.location.reload() */
+          };
+        });
+      }
+      renderList();
     } catch (e) { toast('读取失败：' + e.message); }
   }
   function apply(d) {
