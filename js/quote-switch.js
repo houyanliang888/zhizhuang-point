@@ -54,9 +54,9 @@ var SWITCH_KEY_ORDER = [1, 2, 3, 4];
    - 人体 98 / 门窗 76 / 水浸 109（基础款），新增 T1 系列与 FP1E：
      人体T1 199 / 门窗T1 129 / 水浸T1 159 / AI智能存在传感器 FP1E 349 */
 var EXTRA_DEVICES = {
-  hubM3:      { id: 'hubM3',      name: '智能网关 M3',    unit: '个', price: 699,  icon: '🌐', desc: 'Aqara 方舟智慧中枢 M3' },
-  hubMJ:      { id: 'hubMJ',      name: '米家中枢网关',   unit: '个', price: 349,  icon: '🔶', desc: '米家/小米中枢网关，米家生态首选' },
-  hubM200:    { id: 'hubM200',    name: '智能网关 M200',  unit: '个', price: 599,  icon: '🌐', desc: '小米中枢网关 M200' },
+  hubM3:      { id: 'hubM3',      name: '智能网关 M3',    unit: '个', price: quoteTablePrice('方舟智慧中枢M3', 1099), match: '方舟智慧中枢M3', icon: '🌐', desc: 'Aqara 方舟智慧中枢 M3' },
+  hubMJ:      { id: 'hubMJ',      name: '米家中枢网关',   unit: '个', price: quoteTablePrice('中枢网关', 399), match: '中枢网关', icon: '🔶', desc: '米家/小米中枢网关，米家生态首选' },
+  hubM200:    { id: 'hubM200',    name: '智能网关 M200',  unit: '个', price: quoteTablePrice('M200网关', 499), match: 'M200网关', icon: '🌐', desc: '小米中枢网关 M200' },
   motion:     { id: 'motion',     name: '人体传感器',     unit: '个', price: quoteTablePrice('人体传感器', 98),  match: '人体传感器',  icon: '🚶', desc: '光照度检测 + 人/动物移动检测，联动执行场景' },
   motionT1:   { id: 'motionT1',   name: '人体传感器 T1',  unit: '个', price: quoteTablePrice('人体传感器T1', 199), match: '人体传感器T1', icon: '🚶', desc: 'Zigbee3.0，光照度 + 移动检测，T1 升级款' },
   fp1e:       { id: 'fp1e',       name: 'AI智能存在传感器 FP1E', unit: '个', price: quoteTablePrice('AI智能存在传感器 FP1E', 349), match: 'AI智能存在传感器 FP1E', icon: '📡', desc: '毫米波雷达，精准检测人在状态' },
@@ -64,12 +64,12 @@ var EXTRA_DEVICES = {
   doorT1:     { id: 'doorT1',     name: '门窗传感器 T1',  unit: '个', price: quoteTablePrice('门窗传感器T1', 129), match: '门窗传感器T1', icon: '🚪', desc: 'Zigbee3.0，检测门窗开关状态，T1 升级款' },
   water:      { id: 'water',      name: '水浸传感器',     unit: '个', price: quoteTablePrice('水浸传感器', 109), match: '水浸传感器',  icon: '💧', desc: '智能检测物体表面漏水状态，可联动报警' },
   waterT1:    { id: 'waterT1',    name: '水浸传感器 T1',  unit: '个', price: quoteTablePrice('水浸传感器T1', 159), match: '水浸传感器T1', icon: '💧', desc: 'Zigbee3.0，检测漏水并联动报警，T1 升级款' },
-  siPanel:    { id: 'siPanel',    name: 'SI 集悦中控屏',  unit: '个', price: 1299, icon: '📱', desc: 'SI 集悦智慧中控屏' },
+  siPanel:    { id: 'siPanel',    name: 'SI 集悦中控屏',  unit: '个', price: 1299, icon: '📱', desc: 'SI 集悦智慧中控屏（旧款，报价表已无对应，保留参考价）' },
   mipanel4:   { id: 'mipanel4',   name: '小米4寸中控屏',  unit: '个', price: quoteTablePrice('米家4吋中控屏', 899), match: '米家4吋中控屏', icon: '📺', desc: '小米智能家庭屏 4 英寸，米家生态触控入口' },
   sceneS1:    { id: 'sceneS1',    name: '智能场景面板S1', unit: '个', price: quoteTablePrice('智能场景面板开关S1', 699), match: '智能场景面板开关S1', icon: '🎛️', desc: '兼容 Aqara Home / HomeKit，3.95 英寸全面屏' },
   jiYue:      { id: 'jiYue',      name: '集悦智慧面板',   unit: '个', price: quoteTablePrice('Aqra集悦智慧面板', 1099), match: 'Aqra集悦智慧面板', icon: '🖥️', desc: '支持有线和无线，Aqara 语音管家/手势/触屏' },
   play:       { id: 'play',       name: '小爱音箱 Play',  unit: '个', price: quoteTablePrice('小爱智能音箱Play', 149), match: '小爱智能音箱Play', icon: '🔊', desc: '小爱智能音箱 Play，语音控制入门款' },
-  speaker:    { id: 'speaker',    name: '小爱音箱 Pro',   unit: '个', price: 369,  icon: '🔊', desc: '小爱智能音箱 Pro，语音控制入口' }
+  speaker:    { id: 'speaker',    name: '小爱音箱 Pro',   unit: '个', price: quoteTablePrice('小爱智能音箱Pro', 369), match: '小爱智能音箱Pro', icon: '🔊', desc: '小爱智能音箱 Pro，语音控制入口' }
 };
 var EXTRA_ORDER = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'motionT1', 'fp1e', 'door', 'doorT1', 'water', 'waterT1', 'siPanel', 'mipanel4', 'sceneS1', 'jiYue', 'play', 'speaker'];
 var EXTRA_HUB_SENSOR_PANEL = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'motionT1', 'fp1e', 'door', 'doorT1', 'water', 'waterT1', 'siPanel', 'mipanel4', 'sceneS1', 'jiYue', 'play', 'speaker'];
@@ -155,10 +155,10 @@ var LIGHT_GROUPS = [
               { v: '36°', match: 'Aqara射灯T3-36°', def: 169 } ] },
     { id: 'spotYH4',   name: '雅惠四代射灯 DSX055C', match: '雅惠四代射灯DSX055C',    unit: '个', def: 99 },
     { id: 'spotYS',    name: '雅思射灯 DSC055X',     match: '雅思射灯DSC055X',        unit: '个', def: 119 },
-    { id: 'spotT2Pro', name: 'Aqara 射灯 T2Pro',    match: 'Aqara射灯T2Pro-24°',     unit: '个', def: 309,
-      beam: [ { v: '15°', match: 'Aqara射灯T2Pro-15°', def: 309 },
-              { v: '24°', match: 'Aqara射灯T2Pro-24°', def: 309 },
-              { v: '36°', match: 'Aqara射灯T2Pro-36°', def: 309 } ] },
+    { id: 'spotT2Pro', name: 'Aqara 射灯 T2Pro',    match: 'Aqara射灯T2Pro-24°（75mm）',     unit: '个', def: 309,
+      beam: [ { v: '15°', match: 'Aqara射灯T2Pro-15°（75mm）', def: 309 },
+              { v: '24°', match: 'Aqara射灯T2Pro-24°（75mm）', def: 309 },
+              { v: '36°', match: 'Aqara射灯T2Pro-36°（75mm）', def: 309 } ] },
     { id: 'spotH1',    name: '臻彩光筒射灯 H1',     match: '臻彩光筒射灯H1-36°',     unit: '个', def: 359,
       beam: [ { v: '24°', match: '臻彩光筒射灯H1-24°', def: 359 },
               { v: '36°', match: '臻彩光筒射灯H1-36°', def: 359 },

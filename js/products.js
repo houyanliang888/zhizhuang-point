@@ -1,6 +1,6 @@
 /* ===========================================================
    智装点位通 · 产品库
-   数据来自侯哥的方案模板 2026.9.19.xlsx（真实供货价）
+   数据来自侯哥的方案模板 2026.10.6.xlsx（真实供货价）
    字段：src=来源分类  cat=自动归品类  type=设备类型  name=产品名称
          spec=作用/参数  price=单价  unit=单位
    =========================================================== */
@@ -916,6 +916,15 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
+"type": "智能管状电机TB",
+"cat": "curtain",
+"name": "",
+"spec": "智能卷帘电机，控制方式多种多样，适合多种窗帘材料",
+"price": 899.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
 "type": "T智能开关（零火三键白）",
 "cat": "panel",
 "name": "",
@@ -1024,42 +1033,6 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "Aqara 智能墙壁开关 Q1-（单键）",
-"cat": "panel",
-"name": "",
-"spec": "兼容Aqara Home、Appple Homekit，智能联动照明等电气设备",
-"price": 298.0,
-"unit": "个"
-},
-{
-"src": "Aqara绿米",
-"type": "Aqara 智能墙壁开关 Q1-（双键）",
-"cat": "panel",
-"name": "",
-"spec": "兼容Aqara Home、Appple Homekit，智能联动照明等电气设备",
-"price": 318.0,
-"unit": "个"
-},
-{
-"src": "Aqara绿米",
-"type": "Aqara 智能墙壁开关 Q1-（三键）",
-"cat": "panel",
-"name": "",
-"spec": "兼容Aqara Home、Appple Homekit，智能联动照明等电气设备",
-"price": 338.0,
-"unit": "个"
-},
-{
-"src": "Aqara绿米",
-"type": "Aqara 智能墙壁开关 Q1-（四键）",
-"cat": "panel",
-"name": "",
-"spec": "兼容Aqara Home、Appple Homekit，智能联动照明等电气设备",
-"price": 358.0,
-"unit": "个"
-},
-{
-"src": "Aqara绿米",
 "type": "T无线双键",
 "cat": "accessory",
 "name": "",
@@ -1082,7 +1055,7 @@ var PRODUCTS = [
 "cat": "panel",
 "name": "",
 "spec": "通过不同的动作无线控制设备，执行不同的场景命令",
-"price": 119.0,
+"price": 99.0,
 "unit": "个"
 },
 {
@@ -1276,11 +1249,11 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "智能管状电机TA",
+"type": "智能管状电机T1S",
 "cat": "curtain",
 "name": "",
 "spec": "智能卷帘电机，控制方式多种多样，适合多种窗帘材料",
-"price": 699.0,
+"price": 849.0,
 "unit": "个"
 },
 {
@@ -2221,11 +2194,11 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "小米水浸卫士",
-"cat": "water",
+"type": "小米水浸卫士2",
+"cat": "sensor",
 "name": "",
 "spec": "检测浸水漏水",
-"price": 59.0,
+"price": 69.0,
 "unit": "个"
 },
 {
@@ -2396,7 +2369,7 @@ var PRODUCTS = [
 "cat": "lock",
 "name": "",
 "spec": "兼容米家、Appple Homekit，智能联动设备，超C级锁芯",
-"price": 1999.0,
+"price": 1699.0,
 "unit": "个"
 },
 {
@@ -2405,7 +2378,7 @@ var PRODUCTS = [
 "cat": "lock",
 "name": "",
 "spec": "兼容米家、Appple Homekit，智能联动设备，超C级锁芯",
-"price": 2199.0,
+"price": 1799.0,
 "unit": "个"
 },
 {
@@ -2455,6 +2428,24 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
+"type": "智能门锁U300",
+"cat": "lock",
+"name": "",
+"spec": "全球首款支持Matter 的leverset",
+"price": 1599.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "智能门锁 A100 Pro",
+"cat": "lock",
+"name": "",
+"spec": "兼容Aqara Home、Appple Homekit，智能联动设备",
+"price": 1599.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
 "type": "人脸识别智能门锁D200",
 "cat": "lock",
 "name": "",
@@ -2464,7 +2455,34 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "Aqara智能门锁星耀（霸王锁体）",
+"type": "Aqara智能门锁星耀青金石（霸王锁体）",
+"cat": "lock",
+"name": "",
+"spec": "超广角高清摄像头，门铃可视对讲、异常消息推送、逗留侦测提醒、红外夜视功能",
+"price": 2999.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "Aqara智能门锁星耀青金石（标准锁体）",
+"cat": "lock",
+"name": "",
+"spec": "超广角高清摄像头，门铃可视对讲、异常消息推送、逗留侦测提醒、红外夜视功能",
+"price": 3099.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "Aqara智能门锁星耀青墨（霸王锁体）",
+"cat": "lock",
+"name": "",
+"spec": "超广角高清摄像头，门铃可视对讲、异常消息推送、逗留侦测提醒、红外夜视功能",
+"price": 3599.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "Aqara智能门锁星耀青墨（标准锁体）",
 "cat": "lock",
 "name": "",
 "spec": "超广角高清摄像头，门铃可视对讲、异常消息推送、逗留侦测提醒、红外夜视功能",
@@ -2473,20 +2491,11 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "Aqara智能门锁星耀（标准锁体）",
-"cat": "lock",
-"name": "",
-"spec": "超广角高清摄像头，门铃可视对讲、异常消息推送、逗留侦测提醒、红外夜视功能",
-"price": 3399.0,
-"unit": "个"
-},
-{
-"src": "Aqara绿米",
 "type": "Aqara智能门V100",
 "cat": "other",
 "name": "",
 "spec": "霸王锁体标准门，950*2250*85mm",
-"price": 23600.0,
+"price": 25999.0,
 "unit": "个"
 },
 {
@@ -2693,7 +2702,7 @@ var PRODUCTS = [
 "cat": "gateway",
 "name": "",
 "spec": "双频Wi-Fi | 支持三大主流协议 | 双核大内存 | 增加有线网口",
-"price": 229.0,
+"price": 399.0,
 "unit": "个"
 },
 {
@@ -2702,7 +2711,7 @@ var PRODUCTS = [
 "cat": "gateway",
 "name": "",
 "spec": "稳定连接百款设备丨多台中枢互备丨搭载四核处理器",
-"price": 349.0,
+"price": 399.0,
 "unit": "个"
 },
 {
@@ -2720,25 +2729,7 @@ var PRODUCTS = [
 "cat": "other",
 "name": "",
 "spec": "苹果智能家居中枢",
-"price": 749.0,
-"unit": "个"
-},
-{
-"src": "Aqara绿米",
-"type": "64G高速内存卡",
-"cat": "other",
-"name": "",
-"spec": "高度耐用视频专用卡",
-"price": 79.0,
-"unit": "个"
-},
-{
-"src": "Aqara绿米",
-"type": "128G高速内存卡",
-"cat": "other",
-"name": "",
-"spec": "高度耐用视频专用卡",
-"price": 159.0,
+"price": 999.0,
 "unit": "个"
 },
 {
@@ -2891,7 +2882,7 @@ var PRODUCTS = [
 "cat": "other",
 "name": "",
 "spec": "Zigbee3.0设备，搭配双色温驱动器可以进行灯带或者射灯筒灯色温亮度调节",
-"price": 698.0,
+"price": 599.0,
 "unit": "个"
 },
 {
@@ -2909,7 +2900,7 @@ var PRODUCTS = [
 "cat": "other",
 "name": "",
 "spec": "Zigbee3.0设备，搭配双色温射灯，进行射灯和筒灯色温调节",
-"price": 389.0,
+"price": 299.0,
 "unit": "个"
 },
 {
@@ -2941,6 +2932,42 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
+"type": "智能灯带驱动模块+电源（100W）",
+"cat": "light",
+"name": "",
+"spec": "官方参数精准适配，免调试、供电稳定，一站式配齐省心省力",
+"price": 388.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "智能灯带驱动模块+电源（150W）",
+"cat": "light",
+"name": "",
+"spec": "官方参数精准适配，免调试、供电稳定，一站式配齐省心省力",
+"price": 418.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "智能灯带驱动模块+电源（200W）",
+"cat": "light",
+"name": "",
+"spec": "官方参数精准适配，免调试、供电稳定，一站式配齐省心省力",
+"price": 448.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "智能灯带驱动模块+电源（300W）",
+"cat": "light",
+"name": "",
+"spec": "官方参数精准适配，免调试、供电稳定，一站式配齐省心省力",
+"price": 488.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
 "type": "智能灯带驱动器 T1-60W",
 "cat": "light",
 "name": "",
@@ -2968,7 +2995,7 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "Aqara射灯T2Pro-15°",
+"type": "Aqara射灯T2Pro-15°（75mm）",
 "cat": "light",
 "name": "",
 "spec": "Zigbee3.0设备，万分之一调光精度",
@@ -2977,7 +3004,7 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "Aqara射灯T2Pro-24°",
+"type": "Aqara射灯T2Pro-24°（75mm）",
 "cat": "light",
 "name": "",
 "spec": "Zigbee3.0设备，万分之一调光精度",
@@ -2986,11 +3013,65 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "Aqara射灯T2Pro-36°",
+"type": "Aqara射灯T2Pro-36°（75mm）",
 "cat": "light",
 "name": "",
 "spec": "Zigbee3.0设备，万分之一调光精度",
 "price": 309.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "Aqara射灯T2Pro-24°（55mm）",
+"cat": "light",
+"name": "",
+"spec": "Zigbee3.0设备，万分之一调光精度",
+"price": 289.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "Aqara射灯T2Pro-36°（55mm）",
+"cat": "light",
+"name": "",
+"spec": "Zigbee3.0设备，万分之一调光精度",
+"price": 289.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "Aqara射灯T2Pro-55°（75mm）",
+"cat": "light",
+"name": "",
+"spec": "Zigbee3.0设备，万分之一调光精度",
+"price": 289.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "Aqara射灯T2Pro预埋款",
+"cat": "light",
+"name": "",
+"spec": "Zigbee3.0设备，万分之一调光精度",
+"price": 339.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "单色温射灯T2 Pro",
+"cat": "light",
+"name": "",
+"spec": "实现“缓启”功能。灯光由暗至明柔和渐亮，消除了瞬间的强光刺激",
+"price": 189.0,
+"unit": "个"
+},
+{
+"src": "Aqara绿米",
+"type": "单色温射灯T2 Pro预埋款",
+"cat": "light",
+"name": "",
+"spec": "实现“缓启”功能。灯光由暗至明柔和渐亮，消除了瞬间的强光刺激",
+"price": 209.0,
 "unit": "个"
 },
 {
@@ -3251,7 +3332,7 @@ var PRODUCTS = [
 "cat": "light",
 "name": "",
 "spec": "磁吸轨道直线导电模块",
-"price": 40.0,
+"price": 69.0,
 "unit": "个"
 },
 {
@@ -3260,7 +3341,7 @@ var PRODUCTS = [
 "cat": "light",
 "name": "",
 "spec": "夹装款磁吸轨道，宽25mm，高53mm",
-"price": 200.0,
+"price": 209.0,
 "unit": "个"
 },
 {
@@ -3481,8 +3562,8 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "LED Bulb T2(双色温）",
-"cat": "other",
+"type": "LED Bulb T2(双色温）",
+"cat": "light",
 "name": "",
 "spec": "首款支持双协议的智能灯泡",
 "price": 99.0,
@@ -3490,7 +3571,7 @@ var PRODUCTS = [
 },
 {
 "src": "Aqara绿米",
-"type": "LED Bulb T2(RGB)",
+"type": "LED Bulb T2(RGB)",
 "cat": "other",
 "name": "",
 "spec": "色温范围可达到2000K - 9000K的超宽色域",
@@ -3756,15 +3837,6 @@ var PRODUCTS = [
 "name": "",
 "spec": "产品尺寸：φ83*H80mm，显色指数：>95，防眩灯罩：枪黑、砂白、砂黑",
 "price": 171.0,
-"unit": "个"
-},
-{
-"src": "Aqara绿米",
-"type": "云隐智能晾衣机C100",
-"cat": "other",
-"name": "",
-"spec": "可接入Aqara Home全屋智能及米家，搭配Aqara智能设备可实现智能化联动体验",
-"price": 1399.0,
 "unit": "个"
 },
 {
@@ -4159,7 +4231,7 @@ var PRODUCTS = [
 "type": "阿罗磁吸轨道水平转角",
 "cat": "light",
 "name": "",
-"spec": "转接，外框 水平转角90",
+"spec": "转接，外框\n水平转角90",
 "price": 120.0,
 "unit": "个"
 },
@@ -4732,15 +4804,6 @@ var PRODUCTS = [
 },
 {
 "src": "Yeelight",
-"type": "VRF中央空调控制器",
-"cat": "plug",
-"name": "",
-"spec": "兼容yeelight pro和米家，可适配大部分多联机空调",
-"price": 2499.0,
-"unit": "个"
-},
-{
-"src": "Yeelight",
 "type": "3.5m智能窗帘（S20）",
 "cat": "curtain",
 "name": "",
@@ -4755,15 +4818,6 @@ var PRODUCTS = [
 "name": "",
 "spec": "低功耗，智能开合智能联动，多种控制方式",
 "price": 1399.0,
-"unit": "个"
-},
-{
-"src": "Yeelight",
-"type": "3.5m智能窗帘（S20）",
-"cat": "curtain",
-"name": "",
-"spec": "低功耗，智能开合智能联动，多种控制方式",
-"price": 1499.0,
 "unit": "个"
 },
 {
@@ -5496,60 +5550,6 @@ var PRODUCTS = [
 "unit": "个"
 },
 {
-"src": "Yeelight",
-"type": "小爱智能音箱Pro",
-"cat": "speaker",
-"name": "",
-"spec": "语音控制智能家居设备",
-"price": 299.0,
-"unit": "个"
-},
-{
-"src": "Yeelight",
-"type": "小爱智能音箱Play",
-"cat": "speaker",
-"name": "",
-"spec": "语音控制智能家居设备",
-"price": 149.0,
-"unit": "个"
-},
-{
-"src": "Yeelight",
-"type": "小爱触屏音箱",
-"cat": "speaker",
-"name": "",
-"spec": "语音控制智能家居设备",
-"price": 249.0,
-"unit": "个"
-},
-{
-"src": "Yeelight",
-"type": "小爱音箱sound",
-"cat": "speaker",
-"name": "",
-"spec": "语音控制智能家居设备，可播放音乐",
-"price": 499.0,
-"unit": "个"
-},
-{
-"src": "Yeelight",
-"type": "小米智能门铃",
-"cat": "other",
-"name": "",
-"spec": "异常远程查看 / AI人形识别 / 1080P高清记录 / 门前异动通知 / 小爱联动 / 主客双向对讲",
-"price": 249.0,
-"unit": "个"
-},
-{
-"src": "Yeelight",
-"type": "小米智能家庭屏6",
-"cat": "other",
-"name": "",
-"spec": "语音控制智能家居设备",
-"price": 399.0,
-"unit": "个"
-},
-{
 "src": "Yeelight驭光",
 "type": "H1斜照镍黑75-15 TSDXL01LM",
 "cat": "other",
@@ -6262,7 +6262,7 @@ var PRODUCTS = [
 },
 {
 "src": "Yeelight驭光",
-"type": "固定射灯 （带蜂窝网） DDF075X",
+"type": "固定射灯\n（带蜂窝网） DDF075X",
 "cat": "light",
 "name": "DDF075X",
 "spec": "9W",
@@ -6334,18 +6334,18 @@ var PRODUCTS = [
 },
 {
 "src": "Yeelight驭光",
-"type": "圆形直照洗墙灯 DDZ055X 二代",
+"type": "圆形直照洗墙灯 DDZ055X\n二代",
 "cat": "light",
-"name": "DDZ055X 二代",
+"name": "DDZ055X\n二代",
 "spec": "5W",
 "price": 264.52,
 "unit": "个"
 },
 {
 "src": "Yeelight驭光",
-"type": "圆形斜照洗墙灯 DTZ055X 二代",
+"type": "圆形斜照洗墙灯 DTZ055X\n二代",
 "cat": "light",
-"name": "DTZ055X 二代",
+"name": "DTZ055X\n二代",
 "spec": "5W",
 "price": 264.52,
 "unit": "个"
@@ -6406,18 +6406,18 @@ var PRODUCTS = [
 },
 {
 "src": "Yeelight驭光",
-"type": "圆形直照洗墙灯 DDZ075X 二代",
+"type": "圆形直照洗墙灯 DDZ075X\n二代",
 "cat": "light",
-"name": "DDZ075X 二代",
+"name": "DDZ075X\n二代",
 "spec": "9W",
 "price": 367.74,
 "unit": "个"
 },
 {
 "src": "Yeelight驭光",
-"type": "圆形斜照洗墙灯 DTZ075X 二代",
+"type": "圆形斜照洗墙灯 DTZ075X\n二代",
 "cat": "light",
-"name": "DTZ075X 二代",
+"name": "DTZ075X\n二代",
 "spec": "9W",
 "price": 367.74,
 "unit": "个"
@@ -6768,24 +6768,6 @@ var PRODUCTS = [
 "src": "网络覆盖",
 "type": "吸顶AP",
 "cat": "ap",
-"name": "BXP3006C-H",
-"spec": "2.5G/AX3000M双频超千兆WiFi6吸顶AP, 采用内置天线，整机最大接入速率3000Mbps，支持802.11ax和802.11b/g/n/a/ac，单台AP可以接入128个终端并发入网，支持802.3at标准PoE供电和DC供电",
-"price": 1080.0,
-"unit": "个"
-},
-{
-"src": "网络覆盖",
-"type": "底座",
-"cat": "ap",
-"name": "AP底座",
-"spec": "2.5G/AX3000M双频超千兆WiFi6吸顶AP底座，支持选配，如需桌面放置请选配底座。",
-"price": 20.0,
-"unit": "个"
-},
-{
-"src": "网络覆盖",
-"type": "吸顶AP",
-"cat": "ap",
 "name": "BXP1806C",
 "spec": "1800M双频千兆WiFi6吸顶AP, 采用内置天线，整机最大接入速率1800Mbps，wifi6",
 "price": 999.0,
@@ -6895,7 +6877,7 @@ var PRODUCTS = [
 "type": "背景音乐主机",
 "cat": "speaker",
 "name": "Z6 Pro",
-"spec": "向往4寸背景音乐主机Z6 Pro是一款86型双分区音乐主机，本地、蓝牙、外接等多种音源可选",
+"spec": "向往4寸背景音乐主机Z6 Pro是一款86型双分区音乐主机，本地、蓝牙、外接等多种音源可选",
 "price": 2099.0,
 "unit": "个"
 },
@@ -7188,78 +7170,6 @@ var PRODUCTS = [
 "unit": "个"
 },
 {
-"src": "电动升降帘",
-"type": "电机",
-"cat": "other",
-"name": "香港瑞克斯电机，最大承重80Kg",
-"spec": "香港瑞克斯电机，最大承重80Kg",
-"price": 736.0,
-"unit": "个"
-},
-{
-"src": "电动升降帘",
-"type": "遥控器",
-"cat": "plug",
-"name": "香港瑞克斯电机配套产品，和双路控制器二选一",
-"spec": "香港瑞克斯电机配套产品，和双路控制器二选一",
-"price": 75.0,
-"unit": "个"
-},
-{
-"src": "电动升降帘",
-"type": "接收器",
-"cat": "plug",
-"name": "香港瑞克斯电机配套产品，和双路控制器二选一",
-"spec": "香港瑞克斯电机配套产品，和双路控制器二选一",
-"price": 75.0,
-"unit": "个"
-},
-{
-"src": "电动升降帘",
-"type": "升降配件",
-"cat": "curtain",
-"name": "最大承重13Kg/m，长度按照实际窗帘盒长度计算",
-"spec": "最大承重13Kg/m，长度按照实际窗帘盒长度计算",
-"price": 368.0,
-"unit": "个"
-},
-{
-"src": "电动升降帘",
-"type": "弹簧线",
-"cat": "accessory",
-"name": "电源连接",
-"spec": "电源连接",
-"price": 60.0,
-"unit": "个"
-},
-{
-"src": "电动升降帘",
-"type": "帘头轨",
-"cat": "curtain",
-"name": "用于安装帘头或者窗帘幔帐，长度和升降配件同长",
-"spec": "用于安装帘头或者窗帘幔帐，长度和升降配件同长",
-"price": 35.0,
-"unit": "个"
-},
-{
-"src": "电动升降帘",
-"type": "双路控制器",
-"cat": "plug",
-"name": "联动智能家居或者语音控制",
-"spec": "联动智能家居或者语音控制",
-"price": 153.0,
-"unit": "个"
-},
-{
-"src": "电动升降帘",
-"type": "运费",
-"cat": "other",
-"name": "系统运费",
-"spec": "系统运费",
-"price": 100.0,
-"unit": "个"
-},
-{
 "src": "楼宇对讲",
 "type": "门口主机",
 "cat": "camera",
@@ -7309,7 +7219,7 @@ var PRODUCTS = [
 "type": "室内分机",
 "cat": "camera",
 "name": "DS-KHJ320",
-"spec": "显示屏：7寸彩色触摸TFT LCD 显示屏分辨率：1024*600",
+"spec": "显示屏：7寸彩色触摸TFT LCD\n显示屏分辨率：1024*600",
 "price": 435.0,
 "unit": "个"
 },
@@ -7339,6 +7249,78 @@ var PRODUCTS = [
 "spec": "外机防雨罩",
 "price": 65.0,
 "unit": "个"
+},
+{
+"src": "电动升降帘",
+"type": "电机",
+"cat": "other",
+"name": "香港瑞克斯电机，最大承重80Kg",
+"spec": "香港瑞克斯电机，最大承重80Kg",
+"price": 736.0,
+"unit": "台"
+},
+{
+"src": "电动升降帘",
+"type": "遥控器",
+"cat": "plug",
+"name": "香港瑞克斯电机配套产品，和双路控制器二选一",
+"spec": "香港瑞克斯电机配套产品，和双路控制器二选一",
+"price": 75.0,
+"unit": "个"
+},
+{
+"src": "电动升降帘",
+"type": "接收器",
+"cat": "plug",
+"name": "香港瑞克斯电机配套产品，和双路控制器二选一",
+"spec": "香港瑞克斯电机配套产品，和双路控制器二选一",
+"price": 75.0,
+"unit": "个"
+},
+{
+"src": "电动升降帘",
+"type": "升降配件",
+"cat": "curtain",
+"name": "最大承重13Kg/m，长度按照实际窗帘盒长度计算",
+"spec": "最大承重13Kg/m，长度按照实际窗帘盒长度计算",
+"price": 368.0,
+"unit": "米"
+},
+{
+"src": "电动升降帘",
+"type": "弹簧线",
+"cat": "accessory",
+"name": "电源连接",
+"spec": "电源连接",
+"price": 60.0,
+"unit": "条"
+},
+{
+"src": "电动升降帘",
+"type": "帘头轨",
+"cat": "curtain",
+"name": "用于安装帘头或者窗帘幔帐，长度和升降配件同长",
+"spec": "用于安装帘头或者窗帘幔帐，长度和升降配件同长",
+"price": 35.0,
+"unit": "米"
+},
+{
+"src": "电动升降帘",
+"type": "双路控制器",
+"cat": "plug",
+"name": "联动智能家居或者语音控制",
+"spec": "联动智能家居或者语音控制",
+"price": 153.0,
+"unit": "个"
+},
+{
+"src": "电动升降帘",
+"type": "运费",
+"cat": "other",
+"name": "系统运费",
+"spec": "系统运费",
+"price": 100.0,
+"unit": "次"
 },
 {
 "src": "线性灯型材",
