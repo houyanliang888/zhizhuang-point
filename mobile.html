@@ -157,6 +157,19 @@
   /* 桌面提示：手机版在电脑上打开时给个去完整版的入口 */
   .to-full{ text-align:center; padding:4px 0 18px; }
   .to-full a{ color:var(--muted); font-size:12px; }
+
+  /* 存档区 */
+  .sv-box{ border-top:1px solid var(--line); padding:10px 16px calc(16px + env(safe-area-inset-bottom)); }
+  .sv-title{ font-size:13px; font-weight:700; margin-bottom:8px; }
+  .sv-title span{ font-size:11px; color:var(--muted); font-weight:400; margin-left:6px; }
+  .sv-empty{ font-size:12px; color:var(--muted); padding:10px 0; }
+  .sv-row{ display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px dashed var(--line); font-size:13px; }
+  .sv-row:last-child{ border-bottom:none; }
+  .sv-nm{ flex:1; }
+  .sv-gd{ color:var(--orange); font-weight:700; }
+  .sv-btn{ border:1px solid var(--line); background:#fff; border-radius:7px; font-size:12px; padding:5px 10px; font-family:inherit; color:var(--text); }
+  .sv-btn.load{ background:var(--orange); border-color:var(--orange); color:#fff; }
+  .copy-btn{ margin-left:auto; margin-right:8px; border:none; background:rgba(255,122,26,.12); color:var(--orange); font-size:13px; font-weight:700; padding:7px 12px; border-radius:9px; font-family:inherit; }
 </style>
 </head>
 <body>
@@ -168,7 +181,7 @@
       <h1>智装点位通</h1>
       <div class="sub">手机极速报价 · 工地随时用 · 断网可用</div>
     </div>
-    <button class="reset" data-act="reset">清空</button>
+    <button class="reset" data-act="save">💾 保存</button>
   </div>
 </header>
 
@@ -181,9 +194,9 @@
 
   <!-- 2. 空间开关数 -->
   <div class="sec">
-    <div class="sec-title"><b>② 各空间装几面</b><span class="tag">按 + 就行，键位自动分</span></div>
-    <div class="panel" id="mbRooms"></div>
-    <p class="hint">单/双/三/四键由经验规则自动分配（单键为主，灯多的空间升多键），明细里可核对。</p>
+  <div class="sec-title"><b>② 各空间装几面</b><span class="tag">二开三开为主 · 点 + 就行</span></div>
+  <div class="panel" id="mbRooms"></div>
+  <p class="hint">按键自动分配：1 面按单键，2 面起每 3 面出 1 个三开、其余全是双开（现场最常用口径）。明细里可核对。</p>
   </div>
 
   <!-- 3. 常用设备（折叠） -->
@@ -226,9 +239,14 @@
   <div class="detail-sheet">
     <div class="detail-head">
       <h3>报价明细</h3>
+      <button class="copy-btn" data-act="copy">📋 复制</button>
       <button data-act="detail-close">✕</button>
     </div>
     <div class="detail-body" id="mbDetailBody"></div>
+    <div class="sv-box">
+      <div class="sv-title">已保存的报价单 <span>点「载入」取回</span></div>
+      <div id="mbSaves"></div>
+    </div>
   </div>
 </div>
 

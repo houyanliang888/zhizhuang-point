@@ -65,10 +65,14 @@ var EXTRA_DEVICES = {
   water:      { id: 'water',      name: '水浸传感器',     unit: '个', price: quoteTablePrice('水浸传感器', 109), match: '水浸传感器',  icon: '💧', desc: '智能检测物体表面漏水状态，可联动报警' },
   waterT1:    { id: 'waterT1',    name: '水浸传感器 T1',  unit: '个', price: quoteTablePrice('水浸传感器T1', 159), match: '水浸传感器T1', icon: '💧', desc: 'Zigbee3.0，检测漏水并联动报警，T1 升级款' },
   siPanel:    { id: 'siPanel',    name: 'SI 集悦中控屏',  unit: '个', price: 1299, icon: '📱', desc: 'SI 集悦智慧中控屏' },
+  mipanel4:   { id: 'mipanel4',   name: '小米4寸中控屏',  unit: '个', price: quoteTablePrice('米家4吋中控屏', 899), match: '米家4吋中控屏', icon: '📺', desc: '小米智能家庭屏 4 英寸，米家生态触控入口' },
+  sceneS1:    { id: 'sceneS1',    name: '智能场景面板S1', unit: '个', price: quoteTablePrice('智能场景面板开关S1', 699), match: '智能场景面板开关S1', icon: '🎛️', desc: '兼容 Aqara Home / HomeKit，3.95 英寸全面屏' },
+  jiYue:      { id: 'jiYue',      name: '集悦智慧面板',   unit: '个', price: quoteTablePrice('Aqra集悦智慧面板', 1099), match: 'Aqra集悦智慧面板', icon: '🖥️', desc: '支持有线和无线，Aqara 语音管家/手势/触屏' },
+  play:       { id: 'play',       name: '小爱音箱 Play',  unit: '个', price: quoteTablePrice('小爱智能音箱Play', 149), match: '小爱智能音箱Play', icon: '🔊', desc: '小爱智能音箱 Play，语音控制入门款' },
   speaker:    { id: 'speaker',    name: '小爱音箱 Pro',   unit: '个', price: 369,  icon: '🔊', desc: '小爱智能音箱 Pro，语音控制入口' }
 };
-var EXTRA_ORDER = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'motionT1', 'fp1e', 'door', 'doorT1', 'water', 'waterT1', 'siPanel', 'speaker'];
-var EXTRA_HUB_SENSOR_PANEL = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'motionT1', 'fp1e', 'door', 'doorT1', 'water', 'waterT1', 'siPanel', 'speaker'];
+var EXTRA_ORDER = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'motionT1', 'fp1e', 'door', 'doorT1', 'water', 'waterT1', 'siPanel', 'mipanel4', 'sceneS1', 'jiYue', 'play', 'speaker'];
+var EXTRA_HUB_SENSOR_PANEL = ['hubM3', 'hubMJ', 'hubM200', 'motion', 'motionT1', 'fp1e', 'door', 'doorT1', 'water', 'waterT1', 'siPanel', 'mipanel4', 'sceneS1', 'jiYue', 'play', 'speaker'];
 var EXTRA_INSTALL_RATE = 0.30;   /* 安装调试服务费 = 设备费 × 30% */
 
 /* ---------- 1.7 电动窗帘（v1.18 重做） ----------

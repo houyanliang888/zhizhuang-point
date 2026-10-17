@@ -16,6 +16,21 @@
 
 var MB_DRAFT_KEY = 'zzpt_mobile_draft_v1';
 
+/* 手机版自带迷你 toast（本页不引 app.js） */
+function toast(msg) {
+  var t = document.getElementById('mbToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'mbToast';
+    t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);background:rgba(14,33,71,.94);color:#fff;font-size:13.5px;padding:10px 18px;border-radius:10px;z-index:99;opacity:0;transition:.25s;pointer-events:none;max-width:80%;text-align:center;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(function () { t.style.opacity = '0'; }, 2200);
+}
+
 var MB = {
   model: 'z1',      /* 'z1' | 'x30' */
   rooms: {},        /* roomId -> 开关总数 */
@@ -47,13 +62,26 @@ function mbReset() {
 
 /* ---------- 计算（与桌面版同一套口径） ---------- */
 
-/* 空间开关 → recs：每空间总数按经验分配摊到 1~4 键 */
+/* 手机版按键分配：以二开、三开为主（侯哥 2026.10.17 定）
+   口径：1 面 → 单键；2 面起 → 每 3 面出 1 个三键，其余全是双键（不出四键）
+   例：2面→双2　3面→双2三1　4面→双3三1　6面→双4三2 */
+function mbAllocKeys(n) {
+  n = Math.max(0, parseInt(n, 10) || 0);
+  var out = { 1: 0, 2: 0, 3: 0, 4: 0 };
+  if (!n) return out;
+  if (n === 1) { out[1] = 1; return out; }
+  out[3] = Math.floor(n / 3);
+  out[2] = n - out[3];
+  return out;
+}
+
+/* 空间开关 → recs：每空间总数按键位分配摊到 1~4 键 */
 function mbSwitchRecs() {
   var recs = [];
   allSwitchRooms().forEach(function (rm) {
     var n = Math.max(0, parseInt(MB.rooms[rm.id], 10) || 0);
     if (!n) return;
-    var alloc = allocSmart(n);
+    var alloc = mbAllocKeys(n);
     SWITCH_KEY_ORDER.forEach(function (k) {
       if (alloc[k]) recs.push({ model: MB.model, room: rm.id, roomName: rm.name, key: k, qty: alloc[k] });
     });
@@ -243,6 +271,129 @@ function mbToggleDetail(show) {
   document.getElementById('mbDetailBody').innerHTML = html;
 }
 
+/* ---------- 保存 / 复制报价单（v1.27） ---------- */
+var MB_SAVE_KEY = 'zzpt_mobile_saves_v1';
+
+function mbHasData() {
+  var r = mbCalc();
+  return r.device > 0;
+}
+function mbLoadSaves() {
+  try { var s = JSON.parse(localStorage.getItem(MB_SAVE_KEY) || '[]'); return Array.isArray(s) ? s : []; }
+  catch (e) { return []; }
+}
+function mbWriteSaves(list) {
+  try { localStorage.setItem(MB_SAVE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function mbSaveQuote() {
+  if (!mbHasData()) { toast('还没有内容，先加点开关或设备'); return; }
+  var saves = mbLoadSaves();
+  var d = new Date();
+  var pad = function (x) { return ('0' + x).slice(-2); };
+  var name = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  var r = mbCalc();
+  saves.unshift({ name: name, model: MB.model, rooms: MB.rooms, extras: MB.extras, curtains: MB.curtains, grand: r.grand, time: d.getTime() });
+  if (saves.length > 30) saves = saves.slice(0, 30);
+  mbWriteSaves(saves);
+  toast('已保存 ' + name + '（总计 ' + mbMoney(r.grand) + '）');
+  mbRenderSaves();
+}
+function mbApplySave(i) {
+  var saves = mbLoadSaves();
+  var rec = saves[i];
+  if (!rec) return;
+  MB.model = rec.model || 'z1';
+  MB.rooms = rec.rooms || {};
+  MB.extras = rec.extras || {};
+  MB.curtains = Array.isArray(rec.curtains) ? rec.curtains : [];
+  mbSave(); mbRenderAll(); mbRenderSaves();
+  mbToggleDetail(false);
+  toast('已载入 ' + rec.name);
+}
+function mbDelSave(i) {
+  var saves = mbLoadSaves();
+  saves.splice(i, 1);
+  mbWriteSaves(saves);
+  mbRenderSaves();
+  toast('已删除');
+}
+
+/* 生成可粘贴的报价单文本（发微信/发客户） */
+function mbQuoteText() {
+  var r = mbCalc();
+  var m = switchModel(MB.model);
+  var lines = [];
+  lines.push('【空间智能配置表】' + (m.short) + ' 报价');
+  var recs = mbSwitchRecs();
+  if (recs.length) {
+    lines.push('— 智能开关 —');
+    allSwitchRooms().forEach(function (rm) {
+      var n = Math.max(0, parseInt(MB.rooms[rm.id], 10) || 0);
+      if (!n) return;
+      var alloc = mbAllocKeys(n);
+      var parts = [];
+      [1, 2, 3, 4].forEach(function (k) {
+        if (alloc[k]) parts.push(switchKeyName(m, k) + '×' + alloc[k]);
+      });
+      lines.push(rm.name + '：' + n + ' 面（' + parts.join(' + ') + '）');
+    });
+    lines.push('开关小计：' + mbMoney(r.sw.total) + '（' + r.sw.totalQty + ' 面）');
+  }
+  if (r.extraRows.length) {
+    lines.push('— 设备 —');
+    r.extraRows.forEach(function (x) { lines.push(x.name + ' ×' + x.qty + ' = ' + mbMoney(x.sub)); });
+  }
+  if (r.curtainRows.length) {
+    lines.push('— 电动窗帘 —');
+    r.curtainRows.forEach(function (x) { lines.push(x.name + ' ×' + x.qty + ' = ' + mbMoney(x.sub)); });
+  }
+  lines.push('设备费合计：' + mbMoney(r.device));
+  lines.push('安装调试费（30%）：' + mbMoney(r.install));
+  lines.push('客户总计：' + mbMoney(r.grand));
+  lines.push('—— 侯哥智改 · 全屋智能设计');
+  return lines.join('\n');
+}
+function switchKeyName(model, k) {
+  for (var i = 0; i < model.keys.length; i++) if (model.keys[i].k === k) return model.keys[i].name;
+  return k + '键';
+}
+function mbCopyQuote() {
+  if (!mbHasData()) { toast('还没有内容，先加点开关或设备'); return; }
+  var text = mbQuoteText();
+  function done() { toast('报价单已复制，去微信粘贴发给客户'); }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, function () { mbCopyFallback(text); done(); });
+  } else {
+    mbCopyFallback(text); done();
+  }
+}
+function mbCopyFallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+function mbRenderSaves() {
+  var box = document.getElementById('mbSaves');
+  if (!box) return;
+  var saves = mbLoadSaves();
+  if (!saves.length) {
+    box.innerHTML = '<div class="sv-empty">还没有保存的报价单</div>';
+    return;
+  }
+  var html = '';
+  saves.forEach(function (s, i) {
+    html += '<div class="sv-row"><span class="sv-nm">' + s.name + '</span>'
+      + '<span class="sv-gd">' + mbMoney(s.grand) + '</span>'
+      + '<button class="sv-btn load" data-act="sv-load" data-i="' + i + '">载入</button>'
+      + '<button class="sv-btn" data-act="sv-del" data-i="' + i + '">删</button></div>';
+  });
+  box.innerHTML = html;
+}
+
 /* ---------- 事件 ---------- */
 function mbStep(id, delta) {
   var n = Math.max(0, (parseInt(MB.rooms[id], 10) || 0) + delta);
@@ -289,6 +440,10 @@ function mbBind() {
     else if (act === 'reset') {
       if (confirm('清空本单所有数量？')) mbReset();
     }
+    else if (act === 'save') mbSaveQuote();
+    else if (act === 'copy') mbCopyQuote();
+    else if (act === 'sv-load') mbApplySave(i);
+    else if (act === 'sv-del') mbDelSave(i);
   });
 
   document.body.addEventListener('change', function (e) {
@@ -319,6 +474,7 @@ function mbInit() {
   mbLoad();
   mbBind();
   mbRenderAll();
+  mbRenderSaves();
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', mbInit);
