@@ -1008,7 +1008,7 @@
           b.onclick = function () {
             arr.splice(+b.dataset.del, 1);
             localStorage.setItem('zd_saved', JSON.stringify(arr));
-            renderList();   /* 重绘列表，替代 w.location.reload() */
+            renderList();   /* 重绘列表（Electron 里刷新空白弹窗会变原生空窗，故不用刷新） */
           };
         });
       }
