@@ -304,6 +304,38 @@ function quoteTableCurtains(kw) {
   }).slice(0, 300);
 }
 
+/* ---------- 1.6.5 图纸标记 ↔ 房间清单数字 同步（v1.28，侯哥 2026.10.17 要求） ----------
+   图纸上标设备并指定房间 → 该房间对应列 +1 → 第 3 页点位跟着变（genPoints 以清单数为准）；
+   房间清单改数字 → 图纸上该房间该类型标记自动补齐/裁剪。
+   先打通两类主销：switch→sw（开关）、sensor→sn（传感器），其余类型仅视觉标注。 */
+var MARKER_ROOM_FIELD = { switch: 'sw', sensor: 'sn' };
+
+function markerRoomField(type) { return MARKER_ROOM_FIELD[type] || null; }
+
+/* 给定房间与全局标记数组，返回补齐/裁剪后的新数组（纯函数，不改入参） */
+function syncRoomMarkers(room, markers, mkId) {
+  var out = (markers || []).slice();
+  Object.keys(MARKER_ROOM_FIELD).forEach(function (type) {
+    var field = MARKER_ROOM_FIELD[type];
+    var want = Math.max(0, parseInt(room[field], 10) || 0);
+    var idxs = [];
+    out.forEach(function (m, i) { if (m.type === type && m.room === room.name) idxs.push(i); });
+    /* 多了：从后往前删 */
+    while (idxs.length > want) { out.splice(idxs.pop(), 1); }
+    /* 少了：补在该房间已有标记旁（小偏移防叠死）；没有旧标记就放图中心区散布 */
+    for (var k = idxs.length; k < want; k++) {
+      var base = null;
+      for (var j = 0; j < out.length; j++) {
+        if (out[j].type === type && out[j].room === room.name) { base = out[j]; break; }
+      }
+      var x = base ? Math.min(0.96, base.x + 0.045) : 0.46 + 0.05 * (k % 5);
+      var y = base ? Math.min(0.94, base.y + 0.045) : 0.42 + 0.05 * Math.floor(k / 5);
+      out.push({ id: mkId ? mkId() : 'mk_' + Date.now() + '_' + k, type: type, x: x, y: y, label: '', room: room.name });
+    }
+  });
+  return out;
+}
+
 /* ---------- 2. 空间清单 ---------- */
 /* 用系统通用的空间名，跟报价单、点位清单口径一致 */
 var SWITCH_ROOMS = [

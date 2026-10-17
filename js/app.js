@@ -277,6 +277,11 @@
           } else if (el.dataset.k === 'peri') {
             r.peri = Math.max(0, parseFloat(v) || 0);
           } else r[el.dataset.k] = v;
+          /* 开关/传感器数字变化 → 图纸标记跟着补齐/裁剪（双向同步） */
+          if (el.dataset.k === 'sw' || el.dataset.k === 'sn') {
+            S.markers = syncRoomMarkers(r, S.markers, function () { return uid('mk'); });
+            renderMarkers(); renderMarkerList();
+          }
           renderRooms(); renderNeeds();
           genPoints(true);
         };
@@ -1160,14 +1165,31 @@
     renderMarkers(); renderMarkerList();
     try { persistSaved(); } catch (_) {}
     var t = DEV_TYPES[type] || DEV_TYPES.other;
-    toast('已放置：' + t.name + '（点它可改名/指定房间/删除）');
+    toast('已放置：' + t.name + '——点它指定房间，数量自动进清单和报价');
+  }
+
+  /* 图纸标记 ↔ 房间清单数字同步（v1.28）：
+     标记指定/改房间、改类型、删除时，按 (类型,房间名) 增减清单数字；
+     房间名在清单里找不到就忽略（自定义房间名先加进清单再标）。 */
+  function markerAdjust(type, roomName, delta) {
+    var field = markerRoomField(type);
+    if (!field || !roomName || !delta) return;
+    for (var i = 0; i < S.rooms.length; i++) {
+      if (S.rooms[i].name === roomName) {
+        S.rooms[i][field] = Math.max(0, (parseInt(S.rooms[i][field], 10) || 0) + delta);
+        return;
+      }
+    }
   }
 
   function delMarker(id) {
+    var m = null;
+    for (var i = 0; i < S.markers.length; i++) if (S.markers[i].id === id) { m = S.markers[i]; break; }
     S.markers = S.markers.filter(function (x) { return x.id !== id; });
-    renderMarkers(); renderMarkerList();
+    if (m) markerAdjust(m.type, m.room, -1);
+    renderMarkers(); renderMarkerList(); renderRooms(); genPoints(true);
     try { persistSaved(); } catch (_) {}
-    toast('已删除标记');
+    toast('已删除标记，房间数量与报价已同步');
   }
 
   function editMarker(id) {
@@ -1191,12 +1213,16 @@
       ],
       okText: '保存',
       onOk: function (v) {
+        var oldType = m.type, oldRoom = m.room;
         m.label = (v.label || '').trim();
         m.room = v.room || '';
         if (DEV_TYPES[v.type]) m.type = v.type;
-        renderMarkers(); renderMarkerList();
+        /* 房间/类型变化 → 旧组合 -1、新组合 +1，图纸、清单、第 3 页三方一致 */
+        markerAdjust(oldType, oldRoom, -1);
+        markerAdjust(m.type, m.room, +1);
+        renderMarkers(); renderMarkerList(); renderRooms(); genPoints(true);
         try { persistSaved(); } catch (_) {}
-        toast('已更新标记');
+        toast('已更新标记，清单与报价已同步');
       }
     });
   }
@@ -1354,6 +1380,22 @@
       S.rooms.push({ uid: uid('r'), type: 'living', name: '新房间', area: 15, windows: 1, note: '', track: 'none', sw: 1, sn: 0, peri: 0 });
       renderRooms(); renderNeeds();
     };
+    /* 第 1 页快捷操作（v1.28）：保存/导出/导入复用顶栏同款逻辑 */
+    $('p1Save').onclick = save;
+    $('p1Export').onclick = function () { exportFile(); toast('方案文件已保存到：桌面\\智装导出\\'); };
+    $('p1Import').onclick = function () { $('filePlanJson').click(); };
+    $('p1Clear').onclick = function () {
+      modalBox({
+        title: '一键清除当前方案？', fields: [], okText: '全部清除', cancelText: '取消',
+        onOk: function () {
+          S.rooms = []; S.markers = []; S.points = []; S.rNeeds = {}; S.gNeeds = [];
+          S.planDrag = {};
+          renderRooms(); renderNeeds(); renderMarkers(); renderMarkerList(); renderPoints(); genPoints(true);
+          try { persistSaved(); } catch (e) {}
+          toast('已清空：房间、图纸标注、点位全部重置');
+        }
+      });
+    };
     $('btnAiRoom').onclick = openAiRoom;
 
     $('btnPlan').onclick = renderPlan;
@@ -1463,9 +1505,11 @@
         title: '清空所有设备标注？', fields: [], okText: '清空', cancelText: '取消',
         onOk: function () {
           S.markers = [];
-          renderMarkers(); renderMarkerList();
+          /* 图纸清空 → 房间清单的开关/传感器数字同步归零 → 第 3 页点位跟着清 */
+          S.rooms.forEach(function (r) { r.sw = 0; r.sn = 0; });
+          renderMarkers(); renderMarkerList(); renderRooms(); renderNeeds(); genPoints(true);
           try { persistSaved(); } catch (_) {}
-          toast('已清空标注');
+          toast('已清空标注，房间数量已同步归零');
         }
       });
     };

@@ -65,8 +65,15 @@
     </div>
 
     <div class="card">
-      <h3><span class="bar"></span>房间清单</h3>
-      <div class="sub">直接写空间名（如「主卧」），类型自动识别。开关、传感器按数量填；<b>周长用来在第 7 页自动估算灯带米数</b>；窗帘选单轨还是双轨。</div>
+      <h3 style="display:flex;align-items:center;flex-wrap:wrap;gap:8px"><span class="bar"></span>房间清单
+        <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn sm" id="p1Save">💾 保存方案</button>
+          <button class="btn sm" id="p1Export">📤 导出方案</button>
+          <button class="btn sm" id="p1Import">📥 导入方案</button>
+          <button class="btn sm danger" id="p1Clear">🧹 一键清除</button>
+        </span>
+      </h3>
+      <div class="sub">直接写空间名（如「主卧」），类型自动识别。开关、传感器按数量填；<b>周长用来在第 7 页自动估算灯带米数</b>；窗帘选单轨还是双轨。<b>图纸上标的设备和这里填的数字是联动的</b>，两边改哪边都会同步到第 3 页点位报价。</div>
       <div style="margin-bottom:10px" class="row">
         <button class="btn sm" id="btnAddRoom">＋ 加房间</button>
         <span class="code" style="font-size:12.5px;color:var(--muted)">电路条件：</span>
